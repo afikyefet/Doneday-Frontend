@@ -1,6 +1,6 @@
 
 import { storageService } from '../async-storage.service';
-import { generateBoardName, generateGroupName, generateTaskName, getRandomColor, makeId } from '../util.service';
+import { generateBoardName, generateGroupName, generateRandomDate, generateTaskName, getRandomColor, makeId } from '../util.service';
 
 
 
@@ -437,7 +437,7 @@ function generateTask(groupId = '') {
             startDate: '',
             endDate: ''
         },
-        date: "",
+        date: generateRandomDate(),
         status: getRandomStatus(),
         priority: getRandomPriority()
     };

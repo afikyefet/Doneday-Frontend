@@ -137,3 +137,22 @@ export function generateTaskName() {
     const target = taskTargets[Math.floor(Math.random() * taskTargets.length)];
     return `${action} ${target}`;
 }
+
+export function generateRandomDate() {
+    // Define the start and end dates (months are 0-indexed in JavaScript)
+    const startDate = new Date(2023, 0, 1);  // January 1, 1900
+    const endDate = new Date(2026, 11, 31);   // December 31, 2100
+
+    // Calculate a random timestamp between the start and end dates
+    const randomTimestamp = startDate.getTime() +
+        Math.random() * (endDate.getTime() - startDate.getTime());
+
+    const randomDate = new Date(randomTimestamp);
+
+    // Extract day, month, and year, ensuring two-digit day and month
+    const day = String(randomDate.getDate()).padStart(2, '0');
+    const month = String(randomDate.getMonth() + 1).padStart(2, '0'); // Months are 0-indexed
+    const year = randomDate.getFullYear();
+
+    return `${day}-${month}-${year}`;
+}
