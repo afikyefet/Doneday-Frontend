@@ -15,17 +15,19 @@ export function Date({ info, onTaskUpdate }) {
         if (date.year() === currentYear) {
             return date.format("MMM D")
         }
-        return date.format("MMM D YYYY")
+        return date.format("MMM D, YYYY")
     }
 
     const handleClick = (e) => {
         e.preventDefault()
     }
 
-    function taskTest(d) {
-        console.log(d);
-        // onTaskUpdate(d)
-    }
+    const handlePickDate = (newDate) => {
+        // Format the new date in the same "DD-MM-YYYY" format
+        const formattedDate = newDate.format("DD-MM-YYYY");
+        // Call the update function with the formatted date.
+        onTaskUpdate(formattedDate);
+    };
 
     return (<div className="column-label column-label-date default-cell-color">
 
@@ -38,7 +40,7 @@ export function Date({ info, onTaskUpdate }) {
                 <DialogContentContainer>
                     <DatePicker
                         date={dateValue}
-                        onPickDate={(date) => console.log(date)}
+                        onPickDate={handlePickDate}
                     />
                 </DialogContentContainer>
             }

@@ -140,8 +140,8 @@ export function generateTaskName() {
 
 export function generateRandomDate() {
     // Define the start and end dates (months are 0-indexed in JavaScript)
-    const startDate = new Date(2023, 0, 1);  // January 1, 1900
-    const endDate = new Date(2026, 11, 31);   // December 31, 2100
+    const startDate = new Date(2024, 9, 1);  // January 1, 1900
+    const endDate = new Date(2025, 11, 31);   // December 31, 2100
 
     // Calculate a random timestamp between the start and end dates
     const randomTimestamp = startDate.getTime() +
