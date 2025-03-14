@@ -1,0 +1,11 @@
+.date-picker-window {
+  width: calc(100% - 10px);
+  height: calc(100% - 10px);
+  border-radius: 5px;
+  // margin: 5px;
+  border: 1px solid transparent;
+
+  &:hover {
+    border-color: $layout-border-color ;
+  }
+}
