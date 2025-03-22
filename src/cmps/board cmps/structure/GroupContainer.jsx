@@ -9,15 +9,19 @@ import GroupSummaryRow from "./GroupSummaryRow";
 import GroupTableContent from "./GroupTableContent";
 import GroupTableFooter from "./GroupTableFooter";
 import GroupTableHeader from "./GroupTableHeader";
-const GroupContainer = ({ group, index }) => {
+const GroupContainer = React.memo(({ group, index }) => {
 
     const [isCollapsed, setIsCollapsed] = useState(false);
-    const { attributes, listeners, setNodeRef: setDraggableRef, transform, transition, isDragging } = useSortable({ id: group?._id || "", activationConstraint: { distance: 5 } });
+    const { attributes, listeners, setNodeRef: setDraggableRef, transform, transition, isDragging } = useSortable(
+        { id: group._id, data: { type: 'group' }, activationConstraint: { distance: 5 } });
     const { setNodeRef: setDroppableRef } = useDroppable({ id: group._id });
 
     const previousCollapsedValue = useRef(isCollapsed);
-    const { isGloballyCollapsed } = useSelector(state => state.boardModule)
+    const isGloballyCollapsed = useSelector(state => state.boardModule.isGloballyCollapsed)
     const dispatch = useDispatch();
+
+
+
 
     useEffect(() => {
         if (isGloballyCollapsed) {
@@ -38,15 +42,18 @@ const GroupContainer = ({ group, index }) => {
         console.log('task: ' + task);
     }
 
-
     const style = {
         transform: CSS.Translate.toString(transform),
         transition,
-        zIndex: isDragging ? 3000 : 0,
+        zIndex: isDragging ? 30000 : 0,
     };
-    return <section ref={setDroppableRef} className="group-container" role="rowgroup" style={{ zIndex: 2000 - (index * 10), ...style }}>
+
+    return <section type='group' ref={setDroppableRef} className="group-container" role="rowgroup" style={
+        {
+            // zIndex: 2000 - (index * 10),
+            ...style
+        }}>
         <section role="rowheader" className="group-header-container"
-        // style={{ position: isCollapsed ? 'relative' : 'sticky' }}
         >
             <div className="group-title-container" {...attributes} {...listeners}>
                 {isCollapsed && (
@@ -79,6 +86,6 @@ const GroupContainer = ({ group, index }) => {
         }
         <div className="ghost-div"></div>
     </section >
-}
+})
 
 export default GroupContainer

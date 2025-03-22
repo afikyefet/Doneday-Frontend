@@ -10,7 +10,7 @@ import DynamicSummary from "./DynamicSummary";
 
 
 
-const GroupHeader = forwardRef(({ group, isCollapsed, setIsCollapsed, dndProps, isDragging }, ref) => {
+const GroupHeader = React.memo(forwardRef(({ group, isCollapsed, setIsCollapsed, dndProps, isDragging }, ref) => {
     const tasksCount = group.tasks?.length || 0;
     const headingRef = useRef()
     const [headerColorTrigger, setHeaderColorTrigger] = useState(false)
@@ -98,7 +98,9 @@ const GroupHeader = forwardRef(({ group, isCollapsed, setIsCollapsed, dndProps, 
                 onDragStart={(e) => e.stopPropagation()}
                 className={cn("group-header-wrapper", isDragging && "dragging")}>
                 <EditableHeading onEditModeChange={() => setHeaderColorTrigger(!headerColorTrigger)} ref={headingRef} onChange={(name) => handleChangeName(name)} className={cn("group-header-color group-heading")} type="h3" style={{ color: group.color || 'inherit' }} value={group.name || group._id} />
+
                 <div className="dragable" {...dndProps} style={{ cursor: 'grab' }}></div>
+
                 {!isCollapsed && <Text className="items-count" color='secondary' type="text2" style={{ marginLeft: '8px' }}>{groupCount || "No"} Task{groupCount !== 1 && "s"}</Text>}
             </div>
             {isCollapsed && <Text className="collapse-items" color='secondary' type="text2">{tasksCount} items</Text>}
@@ -114,6 +116,6 @@ const GroupHeader = forwardRef(({ group, isCollapsed, setIsCollapsed, dndProps, 
         </div >}
     </>
 
-})
+}))
 
 export default GroupHeader

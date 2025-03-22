@@ -82,6 +82,7 @@ export async function addBoard(board) {
 // Update Board
 export async function updateBoard(board) {
     try {
+        store.dispatch(getCmdSetBoard(board));
         const savedBoard = await boardService.save(board);
         store.dispatch(getCmdSetBoard(savedBoard));
     } catch (err) {

@@ -13,14 +13,14 @@ import GroupScrollableColumns from "./GroupScrollableColumns";
 import GroupStickyColumns from "./GroupStickyColumns";
 import TaskDetailsTriggerCell from "./TaskDetailsTriggerCell";
 
-const GroupTableContentTask = ({ task, group }) => {
+const GroupTableContentTask = React.memo(({ task, group }) => {
     const selectedTasks = useSelector(storeState => storeState.taskSelectModule.selectedTasks);
     const cmpOrder = useSelector(state => state.boardModule.cmpOrder);
     const board = useSelector(state => state.boardModule.board);
     const members = useSelector(state => state.boardModule.members);
 
     // The setNodeRef and style must remain on the root container.
-    const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: task._id });
+    const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: task._id, data: { type: 'task' } });
     const style = {
         transform: CSS.Transform.toString(transform),
         transition,
@@ -125,6 +125,7 @@ const GroupTableContentTask = ({ task, group }) => {
             style={style}
             role="listitem"
             className="table-task-row"
+            type='task'
         >
             <GroupStickyColumns>
                 <GroupPreRow
@@ -136,8 +137,7 @@ const GroupTableContentTask = ({ task, group }) => {
                 />
                 <div className="min-table-cell table-cell-first-column task-title default-cell-color"
                     {...attributes}
-                    {...listeners}
-                >
+                    {...listeners}>
                     <div
                         className="task-title-container"
                         onMouseDown={(e) => e.stopPropagation()}
@@ -166,6 +166,6 @@ const GroupTableContentTask = ({ task, group }) => {
             </GroupScrollableColumns>
         </div >
     );
-};
+});
 
 export default GroupTableContentTask;
