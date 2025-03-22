@@ -37,16 +37,21 @@ export function BoardPerson() {
                             >
                                 {allMembers?.length > 0 &&
                                     allMembers.map((member) => (
-                                        <Avatar
-                                            key={member.name}
-                                            type="text"
+                                        <div>
+                                        {member.imgUrl && <Avatar
+                                            type="img"
+                                            src={member.imgUrl}
+                                            ariaLabel={member.name}
                                             size="small"
+                                        />}
+                                        {!member.imgUrl && <Avatar
+                                            type="text"
                                             text={member.name.substring(0, 1)}
-                                            // src={member.imgUrl ? member.imgUrl : undefined}
-                                            backgroundColor={
-                                                member?.color ? member.color : "black"
-                                            }
-                                        />
+                                            backgroundColor={member?.color || "black"}
+                                            ariaLabel={member.name}
+                                            size="small"
+                                        />}
+                                        </div>
                                     ))}
                             </div>
                         </div>
