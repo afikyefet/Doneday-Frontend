@@ -20,7 +20,7 @@ const GroupContainer = ({ group, index }) => {
     const isGloballyCollapsed = useSelector(state => state.boardModule.isGloballyCollapsed)
     const dispatch = useDispatch();
 
-
+    console.log(1);
 
 
     useEffect(() => {
@@ -37,6 +37,7 @@ const GroupContainer = ({ group, index }) => {
             dispatch({ type: SET_GLOBALLY_COLLAPSED, isGloballyCollapsed: isDragging })
         }
     }, [isDragging])
+
 
     const handleOnAddTask = (task) => {
         console.log('task: ' + task);
