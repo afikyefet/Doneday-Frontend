@@ -5,11 +5,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { SET_GLOBALLY_COLLAPSED } from "../../../store/reducers/board.reducer";
 import GroupHeader from "./GroupHeader";
-import GroupSummaryRow from "./GroupSummaryRow";
-import GroupTableContent from "./GroupTableContent";
-import GroupTableFooter from "./GroupTableFooter";
-import GroupTableHeader from "./GroupTableHeader";
-const GroupContainer = React.memo(({ group, index }) => {
+const GroupContainerPreview = React.memo(({ group }) => {
 
     const [isCollapsed, setIsCollapsed] = useState(false);
     const { attributes, listeners, setNodeRef: setDraggableRef, transform, transition, isDragging } = useSortable(
@@ -51,7 +47,8 @@ const GroupContainer = React.memo(({ group, index }) => {
     return <section type='group' ref={setDroppableRef} className="group-container" role="rowgroup" style={
         {
             // zIndex: 2000 - (index * 10),
-            ...style
+            ...style,
+            zIndex: isDragging ? 10000 : 4
         }}>
         <section role="rowheader" className="group-header-container"
         >
@@ -71,21 +68,9 @@ const GroupContainer = React.memo(({ group, index }) => {
                     setIsCollapsed={setIsCollapsed}
                 />
             </div>
-            {!isCollapsed && <GroupTableHeader group={group} />}
         </section>
-        {
-            !isCollapsed && <>
-                <section role="rowgroup">
-                    <GroupTableContent group={group} />
-                </section>
-                <footer>
-                    <GroupTableFooter group={group} onAddTask={handleOnAddTask} />
-                    <GroupSummaryRow group={group} />
-                </footer>
-            </>
-        }
         <div className="ghost-div"></div>
     </section >
 })
 
-export default GroupContainer
+export default GroupContainerPreview

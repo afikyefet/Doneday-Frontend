@@ -2,6 +2,7 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { EditableText } from "@vibe/core";
+import React from "react";
 import { useSelector } from "react-redux";
 import { userService } from "../../../services/user";
 import { makeId } from "../../../services/util.service";

@@ -1,6 +1,6 @@
 import { EditableHeading, Icon, Text } from "@vibe/core";
 import { DropdownChevronDown, DropdownChevronRight } from "@vibe/icons";
-import { forwardRef, useEffect, useRef, useState } from "react";
+import React, { forwardRef, useEffect, useRef, useState } from "react";
 import { useSelector } from "react-redux";
 import { cn } from "../../../services/util.service";
 import { updateBoard } from "../../../store/actions/board.actions";
