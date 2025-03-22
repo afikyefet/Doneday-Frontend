@@ -12,8 +12,9 @@ import GroupPreRow from "./GroupPreRow";
 import GroupScrollableColumns from "./GroupScrollableColumns";
 import GroupStickyColumns from "./GroupStickyColumns";
 import TaskDetailsTriggerCell from "./TaskDetailsTriggerCell";
+import React from "react";
 
-const GroupTableContentTask = React.memo(({ task, group }) => {
+const GroupTableContentTask = ({ task, group }) => {
     const selectedTasks = useSelector(storeState => storeState.taskSelectModule.selectedTasks);
     const cmpOrder = useSelector(state => state.boardModule.cmpOrder);
     const board = useSelector(state => state.boardModule.board);
@@ -166,6 +167,6 @@ const GroupTableContentTask = React.memo(({ task, group }) => {
             </GroupScrollableColumns>
         </div >
     );
-});
+}
 
 export default GroupTableContentTask;

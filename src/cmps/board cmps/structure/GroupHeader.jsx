@@ -1,6 +1,6 @@
 import { EditableHeading, Icon, Text } from "@vibe/core";
 import { DropdownChevronDown, DropdownChevronRight } from "@vibe/icons";
-import { forwardRef, useEffect, useRef, useState } from "react";
+import React, { forwardRef, useEffect, useRef, useState } from "react";
 import { useSelector } from "react-redux";
 import { cn } from "../../../services/util.service";
 import { updateBoard } from "../../../store/actions/board.actions";
@@ -10,7 +10,7 @@ import DynamicSummary from "./DynamicSummary";
 
 
 
-const GroupHeader = React.memo(forwardRef(({ group, isCollapsed, setIsCollapsed, dndProps, isDragging }, ref) => {
+const GroupHeader = forwardRef(({ group, isCollapsed, setIsCollapsed, dndProps, isDragging }, ref) => {
     const tasksCount = group.tasks?.length || 0;
     const headingRef = useRef()
     const [headerColorTrigger, setHeaderColorTrigger] = useState(false)
@@ -116,6 +116,6 @@ const GroupHeader = React.memo(forwardRef(({ group, isCollapsed, setIsCollapsed,
         </div >}
     </>
 
-}))
+})
 
 export default GroupHeader
