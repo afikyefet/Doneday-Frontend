@@ -14,7 +14,7 @@ import GroupScrollableColumns from "./GroupScrollableColumns";
 import GroupStickyColumns from "./GroupStickyColumns";
 import TaskDetailsTriggerCell from "./TaskDetailsTriggerCell";
 
-const GroupTableContentTask = React.memo(({ task, group }) => {
+const GroupTableContentTask = ({ task, group }) => {
     const selectedTasks = useSelector(storeState => storeState.taskSelectModule.selectedTasks);
     const cmpOrder = useSelector(state => state.boardModule.cmpOrder);
     const board = useSelector(state => state.boardModule.board);
@@ -27,6 +27,9 @@ const GroupTableContentTask = React.memo(({ task, group }) => {
         transition,
         zIndex: isDragging ? 30000 : 0,
     };
+
+    console.log(1);
+
 
     const handleCellUpdate = async (cmpType, value) => {
         try {
@@ -167,6 +170,6 @@ const GroupTableContentTask = React.memo(({ task, group }) => {
             </GroupScrollableColumns>
         </div >
     );
-});
+}
 
 export default GroupTableContentTask;

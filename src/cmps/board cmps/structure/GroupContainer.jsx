@@ -9,7 +9,7 @@ import GroupSummaryRow from "./GroupSummaryRow";
 import GroupTableContent from "./GroupTableContent";
 import GroupTableFooter from "./GroupTableFooter";
 import GroupTableHeader from "./GroupTableHeader";
-const GroupContainer = React.memo(({ group, index }) => {
+const GroupContainer = ({ group, index }) => {
 
     const [isCollapsed, setIsCollapsed] = useState(false);
     const { attributes, listeners, setNodeRef: setDraggableRef, transform, transition, isDragging } = useSortable(
@@ -86,6 +86,6 @@ const GroupContainer = React.memo(({ group, index }) => {
         }
         <div className="ghost-div"></div>
     </section >
-})
+}
 
 export default GroupContainer

@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import GroupTableContentTask from "./GroupTableContentTask";
 
-const GroupTableContent = React.memo(({ group }) => {
+const GroupTableContent = ({ group }) => {
     // Maintain a local state for tasks
     const [tasks, setTasks] = useState(group.tasks || []);
     const board = useSelector(stateStore => stateStore.boardModule.board)
@@ -25,6 +25,6 @@ const GroupTableContent = React.memo(({ group }) => {
             </section>
         </SortableContext>
     );
-})
+}
 
 export default GroupTableContent;

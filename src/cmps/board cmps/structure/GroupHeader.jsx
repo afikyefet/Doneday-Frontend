@@ -10,7 +10,7 @@ import DynamicSummary from "./DynamicSummary";
 
 
 
-const GroupHeader = React.memo(forwardRef(({ group, isCollapsed, setIsCollapsed, dndProps, isDragging }, ref) => {
+const GroupHeader = forwardRef(({ group, isCollapsed, setIsCollapsed, dndProps, isDragging }, ref) => {
     const tasksCount = group.tasks?.length || 0;
     const headingRef = useRef()
     const [headerColorTrigger, setHeaderColorTrigger] = useState(false)
@@ -116,6 +116,6 @@ const GroupHeader = React.memo(forwardRef(({ group, isCollapsed, setIsCollapsed,
         </div >}
     </>
 
-}))
+})
 
 export default GroupHeader
