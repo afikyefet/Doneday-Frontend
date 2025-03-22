@@ -4,7 +4,6 @@ import { boardService } from "../../services/board/board.service.local";
 import { Bullets, Minimize } from "@vibe/icons";
 import { IconButton, Icon } from "@vibe/core";
 
-// Custom hook for chart resizing functionality
 const useChartResizing = (chartInstanceRef) => {
     const [chartHeight, setChartHeight] = useState(() => {
         return localStorage.getItem('chartHeight') ? 
@@ -17,7 +16,6 @@ const useChartResizing = (chartInstanceRef) => {
         startPos: 0
     });
     
-    // Save height to localStorage when it changes
     useEffect(() => {
         localStorage.setItem('chartHeight', chartHeight.toString());
     }, [chartHeight]);
@@ -59,7 +57,6 @@ const useChartResizing = (chartInstanceRef) => {
     return { chartHeight, handleResizeStart };
 };
 
-// Custom hook for fullscreen functionality
 const useFullScreen = (chartInstanceRef, chartType = 'main') => {
     const [isFullScreen, setIsFullScreen] = useState(false);
     const containerRef = useRef(null);
@@ -99,7 +96,6 @@ const useFullScreen = (chartInstanceRef, chartType = 'main') => {
     const toggleFullScreen = useCallback(() => {
         setIsFullScreen(prev => !prev);
         
-        // Wait for the DOM to update before resizing the chart
         setTimeout(() => {
             if (chartInstanceRef.current) {
                 chartInstanceRef.current.resize();
@@ -110,7 +106,6 @@ const useFullScreen = (chartInstanceRef, chartType = 'main') => {
     return { isFullScreen, toggleFullScreen, containerRef, contentRef };
 };
 
-// Custom hook for dropdown menu
 const useDropdownMenu = (id = 'main') => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const menuRef = useRef(null);
@@ -141,7 +136,6 @@ const useDropdownMenu = (id = 'main') => {
     return { isMenuOpen, toggleMenu, closeMenu, menuRef, buttonRef, menuId: id };
 };
 
-// Main component
 export function BoardChart({ board }) {
     const chartRef = useRef(null);
     const chartInstance = useRef(null);
@@ -150,15 +144,12 @@ export function BoardChart({ board }) {
     const memberChartRef = useRef(null);
     const memberChartInstance = useRef(null);
     
-    // Use bar chart type for the main chart
     const chartType = 'bar';
     
-    // Custom hooks for main chart
     const { chartHeight, handleResizeStart } = useChartResizing(chartInstance);
     const { isFullScreen, toggleFullScreen, containerRef, contentRef } = useFullScreen(chartInstance, 'main');
     const { isMenuOpen, toggleMenu, closeMenu, menuRef, buttonRef } = useDropdownMenu('main');
     
-    // Custom hooks for pie chart
     const pieResizeRef = useRef({
         isResizing: false,
         startHeight: 0,
@@ -179,7 +170,6 @@ export function BoardChart({ board }) {
         buttonRef: pieButtonRef 
     } = useDropdownMenu('pie');
 
-    // Custom hooks for member chart
     const memberResizeRef = useRef({
         isResizing: false,
         startHeight: 0,
@@ -200,40 +190,31 @@ export function BoardChart({ board }) {
         buttonRef: memberButtonRef 
     } = useDropdownMenu('member');
 
-    // Initialize and update main chart
     useEffect(() => {
         if (!chartRef.current || !board) return;
         
-        // Get chart data from board service
         const chartData = boardService.getChartDataFromBoard(board);
         
-        // Clean up previous chart instance
         if (chartInstance.current) {
             chartInstance.current.destroy();
             chartInstance.current = null;
         }
         
-        // Reset canvas to clear any remnants
         const canvas = chartRef.current;
         const ctx = canvas.getContext('2d');
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         
-        // Small delay to ensure DOM updates complete before creating new chart
         setTimeout(() => {
-            // Safety check in case component unmounted during timeout
             if (!chartRef.current) return;
             
-            // Create new chart with config from service (passing chart type)
             const newCtx = chartRef.current.getContext('2d');
             chartInstance.current = new Chart(newCtx, boardService.getChartConfig(chartData, chartType));
             
-            // Resize the chart
             if (chartInstance.current) {
                 chartInstance.current.resize();
             }
         }, 50);
         
-        // Cleanup on unmount
         return () => {
             if (chartInstance.current) {
                 chartInstance.current.destroy();
@@ -242,40 +223,31 @@ export function BoardChart({ board }) {
         };
     }, [board, isFullScreen]);
     
-    // Initialize and update pie chart in mini-charts
     useEffect(() => {
         if (!pieChartRef.current || !board) return;
         
-        // Get chart data from board service
-        const chartData = boardService.getChartDataFromBoard(board);
+        const priorityData = boardService.getPriorityDataFromBoard(board);
         
-        // Clean up previous chart instance
         if (pieChartInstance.current) {
             pieChartInstance.current.destroy();
             pieChartInstance.current = null;
         }
         
-        // Reset canvas to clear any remnants
         const canvas = pieChartRef.current;
         const ctx = canvas.getContext('2d');
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         
-        // Small delay to ensure DOM updates complete before creating new chart
         setTimeout(() => {
-            // Safety check in case component unmounted during timeout
             if (!pieChartRef.current) return;
             
-            // Create new pie chart
             const newCtx = pieChartRef.current.getContext('2d');
-            pieChartInstance.current = new Chart(newCtx, boardService.getChartConfig(chartData, 'pie'));
+            pieChartInstance.current = new Chart(newCtx, boardService.getChartConfig(priorityData, 'pie'));
             
-            // Resize the chart
             if (pieChartInstance.current) {
                 pieChartInstance.current.resize();
             }
         }, 50);
         
-        // Cleanup on unmount
         return () => {
             if (pieChartInstance.current) {
                 pieChartInstance.current.destroy();
@@ -284,40 +256,32 @@ export function BoardChart({ board }) {
         };
     }, [board, isPieFullScreen]);
     
-    // Initialize and update member chart
+    
     useEffect(() => {
         if (!memberChartRef.current || !board) return;
         
-        // Get member distribution data
         const memberData = boardService.getMemberTaskDistribution(board);
         
-        // Clean up previous chart instance
         if (memberChartInstance.current) {
             memberChartInstance.current.destroy();
             memberChartInstance.current = null;
         }
-        
-        // Reset canvas to clear any remnants
+
         const canvas = memberChartRef.current;
         const ctx = canvas.getContext('2d');
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         
-        // Small delay to ensure DOM updates complete before creating new chart
         setTimeout(() => {
-            // Safety check in case component unmounted during timeout
             if (!memberChartRef.current) return;
             
-            // Create new member chart
             const newCtx = memberChartRef.current.getContext('2d');
             memberChartInstance.current = new Chart(newCtx, boardService.getMemberChartConfig(memberData));
             
-            // Resize the chart
             if (memberChartInstance.current) {
                 memberChartInstance.current.resize();
             }
         }, 50);
         
-        // Cleanup on unmount
         return () => {
             if (memberChartInstance.current) {
                 memberChartInstance.current.destroy();
@@ -326,25 +290,21 @@ export function BoardChart({ board }) {
         };
     }, [board, isMemberFullScreen]);
     
-    // Handle fullscreen toggle from menu
     const handleFullScreenToggle = useCallback(() => {
         toggleFullScreen();
         closeMenu();
     }, [toggleFullScreen, closeMenu]);
     
-    // Handle pie chart fullscreen toggle
     const handlePieFullScreenToggle = useCallback(() => {
         togglePieFullScreen();
         closePieMenu();
     }, [togglePieFullScreen, closePieMenu]);
     
-    // Handle member chart fullscreen toggle
     const handleMemberFullScreenToggle = useCallback(() => {
         toggleMemberFullScreen();
         closeMemberMenu();
     }, [toggleMemberFullScreen, closeMemberMenu]);
     
-    // Handle pie chart resize
     const handlePieResizeStart = useCallback((e) => {
         e.preventDefault();
         const handler = pieResizeRef.current;
@@ -379,7 +339,6 @@ export function BoardChart({ board }) {
         document.addEventListener('mouseup', handleMouseUp, { once: true });
     }, [pieChartHeight]);
     
-    // Handle member chart resize
     const handleMemberResizeStart = useCallback((e) => {
         e.preventDefault();
         const handler = memberResizeRef.current;
@@ -478,7 +437,7 @@ export function BoardChart({ board }) {
                 <div className={`chart pie-chart-container ${isPieFullScreen ? 'fullscreen' : ''}`} ref={pieContainerRef}>
                     <div className="mini-chart-content" ref={pieContentRef}>
                         <div className="chart-header">
-                            <h3 className="chart-title">Pie Chart</h3>
+                            <h3 className="chart-title">Task Priority</h3>
                             <div className="menu-container">
                                 <div ref={pieButtonRef}>
                                     <IconButton

@@ -35,8 +35,8 @@ export const boardService = {
     getMemberChartConfig,
     getChartDataFromBoard,
     getMemberChartConfig,
-    getChartConfig
-
+    getChartConfig,
+    getPriorityDataFromBoard
 };
 
 
@@ -379,41 +379,106 @@ function getDateFilters() {
 function getMemberTaskDistribution(board) {
     // Initialize member count object
     const memberCounts = {};
+    let noMembersCount = 0; // Counter for tasks with no members
 
     // Iterate through all groups and tasks to count members
     board.groups.forEach(group => {
         group.tasks.forEach(task => {
-            // Count each member in the task
-            task.members.forEach(member => {
-                if (!memberCounts[member.name]) {
-                    memberCounts[member.name] = {
-                        count: 0,
-                        color: member.color
-                    };
-                }
-                memberCounts[member.name].count++;
-            });
+            // Check if task has no members
+            if (!task.members || task.members.length === 0) {
+                noMembersCount++;
+            } else {
+                // Count each member in the task
+                task.members.forEach(member => {
+                    if (!memberCounts[member.name]) {
+                        memberCounts[member.name] = {
+                            count: 0,
+                            color: member.color
+                        };
+                    }
+                    memberCounts[member.name].count++;
+                });
+            }
         });
     });
 
-    // Convert to array and sort from lowest to highest
-    const sortedMembers = Object.keys(memberCounts)
+    let membersArray = Object.keys(memberCounts)
         .map(name => ({
             name,
             count: memberCounts[name].count,
             color: memberCounts[name].color
-        }))
-        .sort((a, b) => a.count - b.count);
+        }));
+    
+    if (noMembersCount > 0) {
+        membersArray.push({
+            name: "No members",
+            count: noMembersCount,
+            color: "#CCCCCC"
+        });
+    }
+    
+    const sortedMembers = membersArray.sort((a, b) => a.count - b.count);
 
+    const actualMembers = sortedMembers.filter(member => member.name !== "No members");
+    const memberColors = ["#fb275d", "#2a5699", "#e4901c"];
+    
+    actualMembers.forEach((member, index) => {
+        member.color = memberColors[index % memberColors.length];
+    });
+    
     // Prepare data for Chart.js
     const labels = sortedMembers.map(member => member.name);
     const counts = sortedMembers.map(member => member.count);
-    const colors = sortedMembers.map(member => member.color);
+    const colors = sortedMembers.map(member => 
+        member.name === "No members" ? "#CCCCCC" : member.color
+    );
 
     return {
         labels,
         counts,
         colors
+    };
+}
+
+const PRIORITY_COLORS = {
+    'low': '#579bfc',      // $clr-priority-low
+    'medium': '#5559df',   // $clr-priority-medium
+    'high': '#401694',     // $clr-priority-high
+    'critical': '#333333', // $clr-priority-critical
+    'tbd': '#c4c4c4'       // $clr-priority-tbd
+};
+
+// Function to extract priority data from board
+function getPriorityDataFromBoard(board) {
+    if (!board || !board.groups) return { labels: [], counts: [], colors: [] };
+
+    // Count tasks by priority
+    const priorityCounts = {};
+    priorityList.forEach(priority => priorityCounts[priority.value] = 0);
+
+    board.groups.forEach(group => {
+        if (!group.tasks) return;
+
+        group.tasks.forEach(task => {
+            if (task.priority && priorityCounts[task.priority] !== undefined) {
+                priorityCounts[task.priority]++;
+            }
+        });
+    });
+
+    // Format data for chart
+    const chartData = priorityList
+        .filter(priority => priorityCounts[priority.value] > 0)
+        .map(priority => ({
+            label: priority.label,
+            count: priorityCounts[priority.value],
+            color: PRIORITY_COLORS[priority.value]
+        }));
+
+    return {
+        labels: chartData.map(item => item.label),
+        counts: chartData.map(item => item.count),
+        colors: chartData.map(item => item.color)
     };
 }
 
@@ -506,7 +571,7 @@ export function getChartDataFromBoard(board) {
 }
 
 // Chart configuration factory
-export function getChartConfig(chartData, chartType = 'bar') {
+function getChartConfig(chartData, chartType = 'bar') {
     const { labels, counts, colors } = chartData;
     const maxValue = counts.length ? Math.max(...counts) : 0;
 
