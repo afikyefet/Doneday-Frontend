@@ -40,7 +40,7 @@ const GroupTableContentTask = ({ task, group }) => {
 
             const previousValue = structuredClone(foundTask[cmpType]);
             foundTask[cmpType] = value;
-            console.log("🚀 ~ handleCellUpdate ~ foundTask[cmpType]:", foundTask[cmpType])
+            // console.log("🚀 ~ handleCellUpdate ~ foundTask[cmpType]:", foundTask[cmpType])
 
             const loggedUser = userService.getLoggedinUser();
 

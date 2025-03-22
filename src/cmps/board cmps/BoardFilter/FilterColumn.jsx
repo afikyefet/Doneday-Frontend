@@ -66,12 +66,16 @@ const FilterColumn = ({ title, options, toggleFilterBy, filterBy, countTasksByFi
                 />
                 {activeOptions.map((option, idx) => (
                     <ListItem onClick={() => toggleFilterBy(title, option.value)} key={idx} className="filter-item active" kind='secondary' size="small">
-                        <div className="dot" style={getDotStyle(option.value)}></div>{option.label}<span>{countTasksByFilter(title, option.value)}</span>
+                        <div className="dot" style={getDotStyle(option.value)}></div>
+                        <snap className="filter-label">{option.label}</snap>
+                        <span className="filter-amount">{countTasksByFilter(title, option.value)}</span>
                     </ListItem>
                 ))}
                 {inactiveOptions.map((option, idx) => (
                     <ListItem onClick={() => toggleFilterBy(title, option.value)} key={idx} className="filter-item" kind='secondary' size="small">
-                        <div className="dot" style={getDotStyle(option.value)}></div>{option.label}<span>{countTasksByFilter(title, option.value)}</span>
+                        <div className="dot" style={getDotStyle(option.value)}></div>
+                        <snap className="filter-label">{option.label}</snap>
+                        <span className="filter-amount">{countTasksByFilter(title, option.value)}</span>
                     </ListItem>
                 ))}
             </List>

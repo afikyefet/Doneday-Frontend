@@ -95,13 +95,22 @@
 
                 .dot {
                     width: 10px;
+                    min-width: 10px;
                     height: 10px;
                     border-radius: 21px;
                     margin-right: 12px;
                 }
 
-                span {
+                .filter-label {
+                    // max-width: 80px;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    white-space: nowrap;
+                }
+
+                .filter-amount {
                     margin-left: auto;
+                    width: auto;
                     font-size: 0.9em;
                     color: #676879;
                 }
