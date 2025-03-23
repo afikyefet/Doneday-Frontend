@@ -2,7 +2,9 @@ import {
     closestCenter,
     closestCorners,
     DndContext,
+    DragOverlay,
     KeyboardSensor,
+    MeasuringStrategy,
     MouseSensor,
     PointerSensor,
     rectIntersection,
@@ -10,34 +12,54 @@ import {
     useSensor,
     useSensors,
 } from "@dnd-kit/core";
-import { arrayMove, SortableContext, sortableKeyboardCoordinates } from "@dnd-kit/sortable";
-import throttle from "lodash/throttle";
-import { useCallback, useState } from "react";
+import {
+    arrayMove,
+    SortableContext,
+    sortableKeyboardCoordinates,
+    verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import debounce from "lodash/debounce";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useSelector } from "react-redux";
 import { updateBoard } from "../../store/actions/board.actions";
 import { AddGroup } from "./structure/AddGroup";
 import GroupContainer from "./structure/GroupContainer";
+import GroupTableContentTask from "./structure/GroupTableContentTask";
+
+// Custom hook for deep compare memoization
+const useDeepCompareMemoize = (value) => {
+    const ref = useRef();
+    if (JSON.stringify(value) !== JSON.stringify(ref.current)) {
+        ref.current = value;
+    }
+    return ref.current;
+};
 
 export function BoardDetails() {
     const board = useSelector((storeState) => storeState.boardModule.board);
+    const memoizedBoard = useDeepCompareMemoize(board);
     const selectedTasks = useSelector(
         (storeState) => storeState.taskSelectModule.selectedTasks ?? []
     );
-    const [activeId, setActiveId] = useState(null);
 
-    // Define sensors for dnd-kit
+    const [activeId, setActiveId] = useState(null);
+    // We'll use a local state for a preview board that updates during drag.
+    const [previewBoard, setPreviewBoard] = useState(memoizedBoard);
+
+    // Whenever the persistent board changes, update the preview.
+    useEffect(() => {
+        setPreviewBoard(memoizedBoard);
+    }, [memoizedBoard]);
+
+    // Set up sensors with default constraints.
     const sensors = useSensors(
         useSensor(PointerSensor),
         useSensor(MouseSensor),
-        useSensor(TouchSensor),
-        useSensor(KeyboardSensor, {
-            coordinateGetter: sortableKeyboardCoordinates,
-        })
+        useSensor(TouchSensor, { activationConstraint: { delay: 50, tolerance: 2 } }),
+        useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
     );
 
-
-
-    // Collision detection strategy: use rectIntersection then decide which algorithm to use.
+    // Advanced collision detection strategy.
     const collisionDetectionStrategy = useCallback((args) => {
         const intersections = rectIntersection(args);
         return intersections.length
@@ -45,48 +67,98 @@ export function BoardDetails() {
             : closestCorners(args);
     }, []);
 
-    // Helper functions to determine type
-    const isTask = (id) => id.toString().includes("t");
-    const isGroup = (id) => id.toString().includes("g");
+    // Helpers for type checking.
+    const isTask = useCallback((id) => typeof id === "string" && id.charAt(0) === "t", []);
+    const isGroup = useCallback((id) => typeof id === "string" && id.charAt(0) === "g", []);
 
-    // Memoized helper to find items in board
+    // Memoized lookup for items on the board.
     const findValueOfItems = useCallback(
         (id, type) => {
+            if (!memoizedBoard || !memoizedBoard.groups) return null;
             if (type === "group") {
-                return board.groups.find((group) => group._id === id);
+                return memoizedBoard.groups.find((group) => group._id === id);
             }
             if (type === "task") {
-                for (const group of board.groups) {
+                for (const group of memoizedBoard.groups) {
                     const task = group.tasks.find((task) => task._id === id);
                     if (task) return { task, group };
                 }
-                return null;
             }
+            return null;
         },
-        [board]
+        [memoizedBoard]
     );
 
-    // DRAG START: Store the active ID
     const handleDragStart = useCallback((event) => {
         setActiveId(event.active.id);
     }, []);
 
-    // DRAG MOVE: Throttled to improve performance
+    // DRAG MOVE: Update preview state when a task is dragged into another group.
     const handleDragMove = useCallback(
-        throttle((event) => {
+        debounce((event) => {
             const { active, over } = event;
             if (!over) return;
 
-            // TASK <-> TASK move preview
-            if (isTask(active.id) && isTask(over.id) && active.id !== over.id) {
+            // Check for task drag between different groups.
+            if (isTask(active.id) && isGroup(over.id)) {
+                const activeData = findValueOfItems(active.id, "task");
+                if (activeData && activeData.group._id !== over.id) {
+                    const updatedBoard = structuredClone(memoizedBoard);
+                    const sourceGroupIndex = updatedBoard.groups.findIndex(
+                        (g) => g._id === activeData.group._id
+                    );
+                    if (sourceGroupIndex === -1) return;
+                    const taskIndex = updatedBoard.groups[sourceGroupIndex].tasks.findIndex(
+                        (t) => t._id === active.id
+                    );
+                    if (taskIndex === -1) return;
+                    const [movedTask] = updatedBoard.groups[sourceGroupIndex].tasks.splice(taskIndex, 1);
+
+                    const targetGroupIndex = updatedBoard.groups.findIndex((g) => g._id === over.id);
+                    if (targetGroupIndex === -1) return;
+                    movedTask.groupId = updatedBoard.groups[targetGroupIndex]._id;
+                    updatedBoard.groups[targetGroupIndex].tasks.push(movedTask);
+
+                    setPreviewBoard(updatedBoard);
+                }
+            }
+        }, 50),
+        [memoizedBoard, findValueOfItems, isTask, isGroup]
+    );
+
+    // DRAG END: Commit the change to the persistent board state.
+    const handleDragEnd = useCallback(
+        (event) => {
+            const { active, over } = event;
+            if (!over) return;
+
+            // GROUP reordering.
+            if (isGroup(active.id) && isGroup(over.id) && active.id !== over.id) {
+                const activeGroupIndex = memoizedBoard.groups.findIndex(
+                    (group) => group._id === active.id
+                );
+                const overGroupIndex = memoizedBoard.groups.findIndex(
+                    (group) => group._id === over.id
+                );
+                if (activeGroupIndex === -1 || overGroupIndex === -1) return;
+                const updatedBoard = structuredClone(memoizedBoard);
+                updatedBoard.groups = arrayMove(
+                    updatedBoard.groups,
+                    activeGroupIndex,
+                    overGroupIndex
+                );
+                updateBoard(updatedBoard);
+            }
+            // TASK reordering or moving between groups.
+            else if (isTask(active.id) && isTask(over.id) && active.id !== over.id) {
                 const activeData = findValueOfItems(active.id, "task");
                 const overData = findValueOfItems(over.id, "task");
                 if (!activeData || !overData) return;
 
-                const activeGroupIndex = board.groups.findIndex(
+                const activeGroupIndex = memoizedBoard.groups.findIndex(
                     (group) => group._id === activeData.group._id
                 );
-                const overGroupIndex = board.groups.findIndex(
+                const overGroupIndex = memoizedBoard.groups.findIndex(
                     (group) => group._id === overData.group._id
                 );
                 if (activeGroupIndex === -1 || overGroupIndex === -1) return;
@@ -99,116 +171,11 @@ export function BoardDetails() {
                 );
                 if (activeTaskIndex === -1 || overTaskIndex === -1) return;
 
-                const updatedBoard = { ...board };
-
-                if (activeGroupIndex === overGroupIndex) {
-                    updatedBoard.groups[activeGroupIndex].tasks = arrayMove(
-                        updatedBoard.groups[activeGroupIndex].tasks,
-                        activeTaskIndex,
-                        overTaskIndex
-                    );
-                } else {
-                    const [movedTask] = updatedBoard.groups[activeGroupIndex].tasks.splice(
-                        activeTaskIndex,
-                        1
-                    );
-                    movedTask.groupId = updatedBoard.groups[overGroupIndex]._id;
-                    updatedBoard.groups[overGroupIndex].tasks.splice(overTaskIndex, 0, movedTask);
-                }
-                // Optionally, you could update the board preview here:
-                // updateBoard(updatedBoard)
-            }
-
-            // TASK dropping onto a GROUP (preview)
-            if (isTask(active.id) && isGroup(over.id) && active.id !== over.id) {
-                const activeData = findValueOfItems(active.id, "task");
-                const overGroup = findValueOfItems(over.id, "group");
-                if (!activeData || !overGroup) return;
-
-                const activeGroupIndex = board.groups.findIndex(
-                    (group) => group._id === activeData.group._id
-                );
-                const overGroupIndex = board.groups.findIndex(
-                    (group) => group._id === overGroup._id
-                );
-                if (activeGroupIndex === -1 || overGroupIndex === -1) return;
-
-                const activeTaskIndex = activeData.group.tasks.findIndex(
-                    (task) => task._id === active.id
-                );
-                if (activeTaskIndex === -1) return;
-
-                const updatedBoard = { ...board };
-                const [movedTask] = updatedBoard.groups[activeGroupIndex].tasks.splice(activeTaskIndex, 1);
-                movedTask.groupId = updatedBoard.groups[overGroupIndex]._id;
-                updatedBoard.groups[overGroupIndex].tasks.push(movedTask);
-                // Optionally, you could update the board preview here:
-                // updateBoard(updatedBoard)
-            }
-        }, 50),
-        [board, findValueOfItems]
-    );
-
-    // DRAG END: Update the board state permanently based on where the item was dropped.
-    const handleDragEnd = useCallback(
-        (event) => {
-            const { active, over } = event;
-            if (!over) {
-                setActiveId(null);
-                return;
-            }
-
-            // GROUP reordering
-            if (isGroup(active.id) && isGroup(over.id) && active.id !== over.id) {
-                const activeGroupIndex = board.groups.findIndex((group) => group._id === active.id);
-                const overGroupIndex = board.groups.findIndex((group) => group._id === over.id);
-                if (activeGroupIndex === -1 || overGroupIndex === -1) {
-                    setActiveId(null);
-                    return;
-                }
-                const updatedBoard = {
-                    ...board,
-                    groups: arrayMove(board.groups, activeGroupIndex, overGroupIndex),
-                };
-                updateBoard(updatedBoard);
-            }
-            // TASK reordering or moving between groups
-            else if (isTask(active.id) && isTask(over.id) && active.id !== over.id) {
-                const activeData = findValueOfItems(active.id, "task");
-                const overData = findValueOfItems(over.id, "task");
-                if (!activeData || !overData) {
-                    setActiveId(null);
-                    return;
-                }
-                const activeGroupIndex = board.groups.findIndex(
-                    (group) => group._id === activeData.group._id
-                );
-                const overGroupIndex = board.groups.findIndex(
-                    (group) => group._id === overData.group._id
-                );
-                if (activeGroupIndex === -1 || overGroupIndex === -1) {
-                    setActiveId(null);
-                    return;
-                }
-                const activeTaskIndex = activeData.group.tasks.findIndex(
-                    (task) => task._id === active.id
-                );
-                const overTaskIndex = overData.group.tasks.findIndex(
-                    (task) => task._id === over.id
-                );
-                if (activeTaskIndex === -1 || overTaskIndex === -1) {
-                    setActiveId(null);
-                    return;
-                }
-                const updatedBoard = structuredClone(board);
+                const updatedBoard = structuredClone(memoizedBoard);
                 const { data } = over;
                 const visualIndex = data?.current?.sortable?.index ?? overTaskIndex;
                 const direction =
-                    data?.current?.sortable?.containerId === activeData.group._id
-                        ? visualIndex > activeTaskIndex
-                            ? 1
-                            : -1
-                        : 0;
+                    activeData.group._id === overData.group._id && visualIndex > activeTaskIndex ? 1 : -1;
                 if (activeData.group._id === overData.group._id) {
                     const [movedTask] = updatedBoard.groups[activeGroupIndex].tasks.splice(
                         activeTaskIndex,
@@ -229,62 +196,43 @@ export function BoardDetails() {
                 }
                 updateBoard(updatedBoard);
             }
-            // TASK dropped onto a GROUP header
+            // TASK dropped onto a GROUP container.
             else if (isTask(active.id) && isGroup(over.id) && active.id !== over.id) {
                 const activeData = findValueOfItems(active.id, "task");
                 const overGroup = findValueOfItems(over.id, "group");
-                if (!activeData || !overGroup) {
-                    setActiveId(null);
-                    return;
-                }
-                const activeGroupIndex = board.groups.findIndex(
+                if (!activeData || !overGroup) return;
+
+                const activeGroupIndex = memoizedBoard.groups.findIndex(
                     (group) => group._id === activeData.group._id
                 );
-                const overGroupIndex = board.groups.findIndex((group) => group._id === overGroup._id);
-                if (activeGroupIndex === -1 || overGroupIndex === -1) {
-                    setActiveId(null);
-                    return;
-                }
-                const activeTaskIndex = activeData.group.tasks.findIndex((task) => task._id === active.id);
-                if (activeTaskIndex === -1) {
-                    setActiveId(null);
-                    return;
-                }
-                const updatedBoard = { ...board };
+                const overGroupIndex = memoizedBoard.groups.findIndex(
+                    (group) => group._id === overGroup._id
+                );
+                if (activeGroupIndex === -1 || overGroupIndex === -1) return;
+
+                const activeTaskIndex = activeData.group.tasks.findIndex(
+                    (task) => task._id === active.id
+                );
+                if (activeTaskIndex === -1) return;
+
+                const updatedBoard = structuredClone(memoizedBoard);
                 const [movedTask] = updatedBoard.groups[activeGroupIndex].tasks.splice(activeTaskIndex, 1);
                 movedTask.groupId = updatedBoard.groups[overGroupIndex]._id;
-
-                const cursorY = event.activatorEvent?.clientY || 0;
-                const groupElement = document.querySelector(`[data-group-id="${overGroup._id}"]`);
-
-                if (groupElement) {
-                    const groupTasks = updatedBoard.groups[overGroupIndex].tasks;
-                    if (groupTasks.length === 0) {
-                        groupTasks.push(movedTask);
-                    } else {
-                        let insertIndex = groupTasks.length;
-                        const taskElements = Array.from(groupElement.querySelectorAll("[data-task-id]"));
-                        for (let i = 0; i < taskElements.length; i++) {
-                            const taskRect = taskElements[i].getBoundingClientRect();
-                            const taskMidY = taskRect.top + taskRect.height / 2;
-                            if (cursorY < taskMidY) {
-                                insertIndex = i;
-                                break;
-                            }
-                        }
-                        groupTasks.splice(insertIndex, 0, movedTask);
-                    }
-                } else {
-                    updatedBoard.groups[overGroupIndex].tasks.push(movedTask);
-                }
+                updatedBoard.groups[overGroupIndex].tasks.push(movedTask);
                 updateBoard(updatedBoard);
             }
+
+            // Reset preview state to the persistent board once drag ends.
+            setPreviewBoard(memoizedBoard);
             setActiveId(null);
         },
-        [board, findValueOfItems]
+        [memoizedBoard, findValueOfItems, isGroup, isTask]
     );
 
-    if (!board || !board.groups) return null;
+    const activeItem =
+        activeId && (isGroup(activeId) ? findValueOfItems(activeId, "group") : findValueOfItems(activeId, "task"));
+
+    if (!previewBoard || !previewBoard.groups) return null;
 
     return (
         <section className="board-details">
@@ -294,17 +242,28 @@ export function BoardDetails() {
                 onDragStart={handleDragStart}
                 onDragMove={handleDragMove}
                 onDragEnd={handleDragEnd}
+                measuring={{ droppable: { strategy: MeasuringStrategy.Always } }}
             >
-                <SortableContext items={board.groups.map((group) => group._id)}>
-                    {board.groups.map((group) => (
-                        <GroupContainer
-                            group={group}
-                            key={group._id}
-                            selectedTasks={selectedTasks}
-                        />
+                <SortableContext
+                    items={previewBoard.groups.map((group) => group._id)}
+                    strategy={verticalListSortingStrategy}
+                >
+                    {previewBoard.groups.map((group) => (
+                        <GroupContainer group={group} key={group._id} selectedTasks={selectedTasks} />
                     ))}
                 </SortableContext>
                 <AddGroup />
+                <DragOverlay dropAnimation={null}>
+                    {activeItem ? (
+                        isGroup(activeId) ? (
+                            // Render a group overlay – you might want a simplified version
+                            <GroupContainer group={activeItem} selectedTasks={selectedTasks} />
+                        ) : (
+                            // Render a task overlay.
+                            <GroupTableContentTask task={activeItem.task} group={activeItem.group} />
+                        )
+                    ) : null}
+                </DragOverlay>
             </DndContext>
         </section>
     );
