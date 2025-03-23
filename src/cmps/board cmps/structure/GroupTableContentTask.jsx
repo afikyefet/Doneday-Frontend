@@ -21,7 +21,7 @@ const GroupTableContentTask = ({ task, group }) => {
     // The setNodeRef and style must remain on the root container.
     const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: task._id, data: { type: 'task' } });
     const style = {
-        transform: CSS.Transform.toString(transform),
+        transform: CSS.Translate.toString(transform),
         transition,
         zIndex: isDragging ? 30000 : 0,
     };
