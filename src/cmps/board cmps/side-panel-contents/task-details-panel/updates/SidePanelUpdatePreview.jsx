@@ -25,7 +25,7 @@ const SidePanelUpdatePreview = ({ update, onUpdateReply, onRemoveReply }) => {
         const newUpdate = { ...update };
         newUpdate.replies = newUpdate?.replies || [];
         newUpdate.replies.push(newReply);
-        onUpdateReply(newUpdate);
+        onUpdateReply(newUpdate, newReply.text);
     }
 
     return <article className="update-preview">

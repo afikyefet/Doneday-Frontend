@@ -170,7 +170,10 @@
 }
 
 .group-header-container {
-  position: sticky;
   top: 156px;
   z-index: 2000;
+}
+
+.sticky-header {
+  position: sticky;
 }

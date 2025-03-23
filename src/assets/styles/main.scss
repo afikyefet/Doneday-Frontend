@@ -28,7 +28,6 @@
 @use "./cmps/board/BoardSort";
 @use "./cmps/board/BoardDetails";
 
-
 // New Structure & Board Layout
 @use "./cmps/board/structure/GroupHeader";
 @use "./cmps/board/structure/GroupTableHeader";
@@ -69,6 +68,7 @@
 @use "./cmps/SidePanel/SidePanelReplyUpdate";
 @use "./cmps/SidePanel/SidePanelUpdateActions";
 @use "./cmps/SidePanel/SidePanelReplyInput";
+@use "./cmps/SidePanel/Notifications";
 @use "./cmps/SidePanel/SidePanelRepliesList";
 @use "./cmps/SidePanel/SidePanelReplyPreview";
 @use "./cmps/SidePanel/SidePanelActivity";

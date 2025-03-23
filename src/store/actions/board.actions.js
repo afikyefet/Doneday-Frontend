@@ -1,13 +1,29 @@
 
+import { storageService } from '../../services/async-storage.service';
 import { boardService } from '../../services/board';
 import { userService } from '../../services/user';
 
-import { REMOVE_BOARD, SET_BOARD, SET_BOARDS, SET_CMP_ORDER, SET_FILTER, SET_MEMBERS, SET_SORT } from '../reducers/board.reducer';
+import { NOTIFICATION_INDICATOR, REMOVE_BOARD, SET_BOARD, SET_BOARDS, SET_CMP_ORDER, SET_FILTER, SET_MEMBERS, SET_SORT, UPDATE_NOTIFICATIONS } from '../reducers/board.reducer';
 import { store } from '../store';
 
 export async function loadMembers() {
     const users = await userService.getUsers();
     store.dispatch(getCmdSetMembers(users));
+}
+
+export async function loadNotifications() {
+    const notifications = await storageService.query('notificationsDB') || [];
+    store.dispatch(getCmdSetNotifications(notifications));
+}
+
+export async function addNewNotification(notification) {
+    let notifications = await storageService.query('notificationsDB') || [];
+    notifications = [notification, ...notifications];
+
+    alertNotifications();
+
+    storageService._save('notificationsDB', notifications);
+    store.dispatch(getCmdSetNotifications(notifications));
 }
 
 // Get Boards
@@ -20,6 +36,26 @@ export async function loadBoards() {
         console.error('Board Action -> Cannot load boards', err);
         throw err;
     }
+}
+
+export function readNotifications() {
+    const notifications = store.getState().boardModule.notifications;
+    for (let notification of notifications) {
+        notification.read = true;
+    }
+    storageService._save('notificationsDB', notifications);
+    store.dispatch(getCmdSetNotifications(notifications));
+    store.dispatch(getCmdNotificationIndicator(false));
+}
+
+export function alertNotifications() {
+    store.dispatch(getCmdNotificationIndicator(true));
+}
+
+export async function updateBoardRemoved(boardId) {
+    let boards = store.getState().boardModule.boards;
+    boards = boards.filter(board => board._id !== boardId);
+    store.dispatch(getCmdSetBoards(boards))
 }
 
 // Save boards
@@ -143,4 +179,12 @@ function getCmdSortBy(sortBy) {
 
 function getCmdSetMembers(members) {
     return { type: SET_MEMBERS, members };
+}
+
+function getCmdSetNotifications(notifications) {
+    return { type: UPDATE_NOTIFICATIONS, notifications };
+}
+
+function getCmdNotificationIndicator(state) {
+    return { type: NOTIFICATION_INDICATOR, state };
 }

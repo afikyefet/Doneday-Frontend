@@ -15,7 +15,7 @@
 .ghost-div {
   width: 100%;
   visibility: hidden;
-  height: 0px;
+  height: 76px;
 }
 
 .task-left-indicator {
@@ -43,11 +43,11 @@
   justify-content: flex-start !important;
 }
 
-.task-menu-button>*:first-child {
+.task-menu-button > *:first-child {
   opacity: 0;
 }
 
-.task-menu-button:hover>*:first-child {
+.task-menu-button:hover > *:first-child {
   opacity: 1;
 }
 
@@ -70,7 +70,7 @@
     background-color: white;
   }
 
-  &>* {
+  & > * {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -80,11 +80,11 @@
     flex-shrink: 0;
   }
 
-  &>*:not(:last-child) {
+  & > *:not(:last-child) {
     border-right: none;
   }
 
-  &>*:last-child .column-filler {
+  & > *:last-child .column-filler {
     border-right: 1px solid $layout-border-color;
     background-color: red;
   }

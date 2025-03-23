@@ -18,7 +18,6 @@ const GroupTableContentTask = ({ task, group }) => {
     const selectedTasks = useSelector(storeState => storeState.taskSelectModule.selectedTasks);
     const cmpOrder = useSelector(state => state.boardModule.cmpOrder);
     const board = useSelector(state => state.boardModule.board);
-    const members = useSelector(state => state.boardModule.members);
 
     // The setNodeRef and style must remain on the root container.
     const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: task._id, data: { type: 'task' } });
@@ -45,7 +44,6 @@ const GroupTableContentTask = ({ task, group }) => {
 
             const previousValue = structuredClone(foundTask[cmpType]);
             foundTask[cmpType] = value;
-            // console.log("🚀 ~ handleCellUpdate ~ foundTask[cmpType]:", foundTask[cmpType])
 
             const loggedUser = userService.getLoggedinUser();
 

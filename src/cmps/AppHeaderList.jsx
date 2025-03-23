@@ -1,16 +1,20 @@
 import { Avatar, Badge } from "@vibe/core";
 import { Invite, Notifications } from "@vibe/icons";
+import { useSelector } from "react-redux";
 import { userService } from "../services/user";
 
 const AppHeaderList = ({ onToggleInvite, onOpenNotifications }) => {
     const user = userService.getLoggedinUser();
+    const notificationIndicator = useSelector(storeState => storeState.boardModule.notificationIndicator);
+
     return <section className='app-header-list'>
         <ul>
             <li>
                 <button onClick={onOpenNotifications}>
-                    <Badge alignment='circular' color='notification' type='indicator' size="small">
+                    {notificationIndicator && <Badge alignment='circular' color='notification' type='indicator' size="small">
                         <Notifications />
-                    </Badge>
+                    </Badge>}
+                    {!notificationIndicator && <Notifications />}
                 </button>
             </li>
             <li>

@@ -23,7 +23,6 @@ export const boardService = {
     generateBoard,
     generateGroup,
     generateTask,
-    getEmptyReply,
     // Message Operations
     addBoardMsg,
     // Filter
@@ -36,7 +35,6 @@ export const boardService = {
     getChartDataFromBoard,
     getMemberChartConfig,
     getChartConfig
-
 };
 
 
@@ -265,19 +263,6 @@ function generateTask(groupId = '') {
         status: getRandomStatus(),
         priority: getRandomPriority()
     };
-}
-
-function getEmptyReply() {
-    return ({
-        _id: crypto.randomUUID(),
-        text: '',
-        by: {
-            _id: 'user101',
-            name: 'User 101',
-            avatar: ''
-        },
-        likedBy: []
-    })
 }
 
 async function addBoardMsg(boardId, txt) {
