@@ -91,6 +91,7 @@ export function BoardDetails() {
 
     const handleDragStart = useCallback((event) => {
         setActiveId(event.active.id);
+        // if (event.active.id.charAt(0) === "g") dispatch({ type: SET_GLOBALLY_COLLAPSED, isGloballyCollapsed: true })
     }, []);
 
     // DRAG MOVE: Update preview state when a task is dragged into another group.
@@ -260,7 +261,10 @@ export function BoardDetails() {
                             <GroupContainer group={activeItem} selectedTasks={selectedTasks} />
                         ) : (
                             // Render a task overlay.
-                            <GroupTableContentTask task={activeItem.task} group={activeItem.group} />
+                            <section className="group-table-content">
+
+                                <GroupTableContentTask task={activeItem.task} group={activeItem.group} />
+                            </section>
                         )
                     ) : null}
                 </DragOverlay>
