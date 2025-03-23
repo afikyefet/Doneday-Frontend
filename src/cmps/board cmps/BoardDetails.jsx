@@ -39,8 +39,6 @@ export function BoardDetails() {
         })
     );
 
-
-
     // Collision detection strategy: use rectIntersection then decide which algorithm to use.
     const collisionDetectionStrategy = useCallback((args) => {
         const intersections = rectIntersection(args);
@@ -48,6 +46,7 @@ export function BoardDetails() {
             ? closestCenter({ ...args, droppableContainers: intersections })
             : closestCorners(args);
     }, []);
+
 
     // Helper functions to determine type
     const isTask = (id) => id.toString().includes("t");
@@ -120,7 +119,7 @@ export function BoardDetails() {
                     updatedBoard.groups[overGroupIndex].tasks.splice(overTaskIndex, 0, movedTask);
                 }
                 // Optionally, you could update the board preview here:
-                // updateBoard(updatedBoard)
+                updateBoard(updatedBoard)
             }
 
             // TASK dropping onto a GROUP (preview)
@@ -147,7 +146,7 @@ export function BoardDetails() {
                 movedTask.groupId = updatedBoard.groups[overGroupIndex]._id;
                 updatedBoard.groups[overGroupIndex].tasks.push(movedTask);
                 // Optionally, you could update the board preview here:
-                // updateBoard(updatedBoard)
+                updateBoard(updatedBoard)
             }
         }, 50),
         [board, findValueOfItems]
@@ -204,32 +203,41 @@ export function BoardDetails() {
                     setActiveId(null);
                     return;
                 }
+
                 const updatedBoard = structuredClone(board);
-                const { data } = over;
-                const visualIndex = data?.current?.sortable?.index ?? overTaskIndex;
-                const direction =
-                    data?.current?.sortable?.containerId === activeData.group._id
-                        ? visualIndex > activeTaskIndex
-                            ? 1
-                            : -1
-                        : 0;
+                // Get pointer position and decide insertion index based on target's midpoint
+                const pointerY = event.activatorEvent?.clientY || 0;
+                const overElement = document.querySelector(`[data-task-id="${over.id}"]`);
+                let newIndex = overTaskIndex;
+                if (overElement) {
+                    const { top, height } = overElement.getBoundingClientRect();
+                    const midY = top + height / 2;
+                    if (pointerY > midY) {
+                        newIndex = overTaskIndex + 1;
+                    } else {
+                        newIndex = overTaskIndex;
+                    }
+                }
+
+                // If reordering within the same group, adjust index if needed
                 if (activeData.group._id === overData.group._id) {
                     const [movedTask] = updatedBoard.groups[activeGroupIndex].tasks.splice(
                         activeTaskIndex,
                         1
                     );
-                    let insertIndex = visualIndex;
-                    if (direction === 1 && activeTaskIndex < visualIndex) {
-                        insertIndex -= 1;
+                    // If the active task was originally before the target, and we're inserting after,
+                    // the index needs to be adjusted.
+                    if (activeTaskIndex < newIndex) {
+                        newIndex = newIndex - 1;
                     }
-                    updatedBoard.groups[activeGroupIndex].tasks.splice(insertIndex, 0, movedTask);
+                    updatedBoard.groups[activeGroupIndex].tasks.splice(newIndex, 0, movedTask);
                 } else {
                     const [movedTask] = updatedBoard.groups[activeGroupIndex].tasks.splice(
                         activeTaskIndex,
                         1
                     );
                     movedTask.groupId = updatedBoard.groups[overGroupIndex]._id;
-                    updatedBoard.groups[overGroupIndex].tasks.splice(visualIndex, 0, movedTask);
+                    updatedBoard.groups[overGroupIndex].tasks.splice(newIndex, 0, movedTask);
                 }
                 updateBoard(updatedBoard);
             }
@@ -300,7 +308,7 @@ export function BoardDetails() {
         <section className="board-details">
             <DndContext
                 sensors={sensors}
-                collisionDetection={closestCenter}
+                collisionDetection={collisionDetectionStrategy}
                 onDragStart={handleDragStart}
                 onDragMove={handleDragMove}
                 onDragEnd={handleDragEnd}
