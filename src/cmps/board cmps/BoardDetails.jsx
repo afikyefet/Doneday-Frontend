@@ -13,21 +13,63 @@ import {
 } from "@dnd-kit/core";
 import { arrayMove, SortableContext, sortableKeyboardCoordinates } from "@dnd-kit/sortable";
 import throttle from "lodash/throttle";
-import { useCallback, useState } from "react";
-import { useSelector } from "react-redux";
+import React, { useCallback, useMemo, useState } from "react";
+import { shallowEqual, useSelector } from "react-redux";
 import { updateBoard } from "../../store/actions/board.actions";
 import { AddGroup } from "./structure/AddGroup";
 import GroupContainer from "./structure/GroupContainer";
 import GroupContainerPreview from "./structure/GroupContainerPreview";
-import GroupTableContentTask from "./structure/GroupTableContentTask";
 import GroupTableContentTaskPreview from "./structure/GroupTableContentTaskPreview";
 
 export function BoardDetails() {
-    const board = useSelector((storeState) => storeState.boardModule.board);
+    // Use shallowEqual so that we don't trigger re-renders unless board parts really change.
+    const board = useSelector(
+        (storeState) => storeState.boardModule.board,
+        shallowEqual
+    );
     const selectedTasks = useSelector(
-        (storeState) => storeState.taskSelectModule.selectedTasks ?? []
+        (storeState) => storeState.taskSelectModule.selectedTasks ?? [],
+        shallowEqual
     );
     const [activeId, setActiveId] = useState(null);
+
+    // Memoize groups map for quick lookup.
+    const groupsById = useMemo(() => {
+        if (!board?.groups) return {};
+        return board.groups.reduce((acc, group) => {
+            acc[group._id] = group;
+            return acc;
+        }, {});
+    }, [board?.groups]);
+
+    // Memoize tasks map for quick lookup.
+    const tasksMap = useMemo(() => {
+        const map = {};
+        if (!board?.groups) return map;
+        board.groups.forEach((group) => {
+            group.tasks.forEach((task) => {
+                map[task._id] = { task, group };
+            });
+        });
+        return map;
+    }, [board?.groups]);
+
+    // Helper functions to determine type
+    const isTask = useCallback((id) => id.toString().includes("t"), []);
+    const isGroup = useCallback((id) => id.toString().includes("g"), []);
+
+    // Memoized helper to find items using our maps.
+    const findValueOfItems = useCallback(
+        (id, type) => {
+            if (type === "group") {
+                return groupsById[id];
+            }
+            if (type === "task") {
+                return tasksMap[id] || null;
+            }
+        },
+        [groupsById, tasksMap]
+    );
 
     // Define sensors for dnd-kit
     const sensors = useSensors(
@@ -39,7 +81,7 @@ export function BoardDetails() {
         })
     );
 
-    // Collision detection strategy: use rectIntersection then decide which algorithm to use.
+    // Collision detection strategy
     const collisionDetectionStrategy = useCallback((args) => {
         const intersections = rectIntersection(args);
         return intersections.length
@@ -47,112 +89,93 @@ export function BoardDetails() {
             : closestCorners(args);
     }, []);
 
-
-    // Helper functions to determine type
-    const isTask = (id) => id.toString().includes("t");
-    const isGroup = (id) => id.toString().includes("g");
-
-    // Memoized helper to find items in board
-    const findValueOfItems = useCallback(
-        (id, type) => {
-            if (type === "group") {
-                return board.groups.find((group) => group._id === id);
-            }
-            if (type === "task") {
-                for (const group of board.groups) {
-                    const task = group.tasks.find((task) => task._id === id);
-                    if (task) return { task, group };
-                }
-                return null;
-            }
-        },
-        [board]
-    );
-
     // DRAG START: Store the active ID
     const handleDragStart = useCallback((event) => {
         setActiveId(event.active.id);
     }, []);
 
-    // DRAG MOVE: Throttled to improve performance
-    const handleDragMove = useCallback(
-        throttle((event) => {
-            const { active, over } = event;
-            if (!over) return;
+    // DRAG MOVE: Throttled to improve performance.
+    const throttledDragMove = useMemo(
+        () =>
+            throttle((event) => {
+                const { active, over } = event;
+                if (!over) return;
 
-            // TASK <-> TASK move preview
-            if (isTask(active.id) && isTask(over.id) && active.id !== over.id) {
-                const activeData = findValueOfItems(active.id, "task");
-                const overData = findValueOfItems(over.id, "task");
-                if (!activeData || !overData) return;
+                // TASK <-> TASK move preview
+                if (isTask(active.id) && isTask(over.id) && active.id !== over.id) {
+                    const activeData = findValueOfItems(active.id, "task");
+                    const overData = findValueOfItems(over.id, "task");
+                    if (!activeData || !overData) return;
 
-                const activeGroupIndex = board.groups.findIndex(
-                    (group) => group._id === activeData.group._id
-                );
-                const overGroupIndex = board.groups.findIndex(
-                    (group) => group._id === overData.group._id
-                );
-                if (activeGroupIndex === -1 || overGroupIndex === -1) return;
-
-                const activeTaskIndex = activeData.group.tasks.findIndex(
-                    (task) => task._id === active.id
-                );
-                const overTaskIndex = overData.group.tasks.findIndex(
-                    (task) => task._id === over.id
-                );
-                if (activeTaskIndex === -1 || overTaskIndex === -1) return;
-
-                const updatedBoard = { ...board };
-
-                if (activeGroupIndex === overGroupIndex) {
-                    updatedBoard.groups[activeGroupIndex].tasks = arrayMove(
-                        updatedBoard.groups[activeGroupIndex].tasks,
-                        activeTaskIndex,
-                        overTaskIndex
+                    const activeGroupIndex = board.groups.findIndex(
+                        (group) => group._id === activeData.group._id
                     );
-                } else {
-                    const [movedTask] = updatedBoard.groups[activeGroupIndex].tasks.splice(
-                        activeTaskIndex,
-                        1
+                    const overGroupIndex = board.groups.findIndex(
+                        (group) => group._id === overData.group._id
                     );
-                    movedTask.groupId = updatedBoard.groups[overGroupIndex]._id;
-                    updatedBoard.groups[overGroupIndex].tasks.splice(overTaskIndex, 0, movedTask);
+                    if (activeGroupIndex === -1 || overGroupIndex === -1) return;
+
+                    const activeTaskIndex = activeData.group.tasks.findIndex(
+                        (task) => task._id === active.id
+                    );
+                    const overTaskIndex = overData.group.tasks.findIndex(
+                        (task) => task._id === over.id
+                    );
+                    if (activeTaskIndex === -1 || overTaskIndex === -1) return;
+
+                    const updatedBoard = { ...board };
+
+                    if (activeGroupIndex === overGroupIndex) {
+                        updatedBoard.groups[activeGroupIndex].tasks = arrayMove(
+                            updatedBoard.groups[activeGroupIndex].tasks,
+                            activeTaskIndex,
+                            overTaskIndex
+                        );
+                    } else {
+                        const [movedTask] = updatedBoard.groups[activeGroupIndex].tasks.splice(
+                            activeTaskIndex,
+                            1
+                        );
+                        movedTask.groupId = updatedBoard.groups[overGroupIndex]._id;
+                        updatedBoard.groups[overGroupIndex].tasks.splice(overTaskIndex, 0, movedTask);
+                    }
+                    updateBoard(updatedBoard);
                 }
-                // Optionally, you could update the board preview here:
-                updateBoard(updatedBoard)
-            }
 
-            // TASK dropping onto a GROUP (preview)
-            if (isTask(active.id) && isGroup(over.id) && active.id !== over.id) {
-                const activeData = findValueOfItems(active.id, "task");
-                const overGroup = findValueOfItems(over.id, "group");
-                if (!activeData || !overGroup) return;
+                // TASK dropping onto a GROUP (preview)
+                if (isTask(active.id) && isGroup(over.id) && active.id !== over.id) {
+                    const activeData = findValueOfItems(active.id, "task");
+                    const overGroup = findValueOfItems(over.id, "group");
+                    if (!activeData || !overGroup) return;
 
-                const activeGroupIndex = board.groups.findIndex(
-                    (group) => group._id === activeData.group._id
-                );
-                const overGroupIndex = board.groups.findIndex(
-                    (group) => group._id === overGroup._id
-                );
-                if (activeGroupIndex === -1 || overGroupIndex === -1) return;
+                    const activeGroupIndex = board.groups.findIndex(
+                        (group) => group._id === activeData.group._id
+                    );
+                    const overGroupIndex = board.groups.findIndex(
+                        (group) => group._id === overGroup._id
+                    );
+                    if (activeGroupIndex === -1 || overGroupIndex === -1) return;
 
-                const activeTaskIndex = activeData.group.tasks.findIndex(
-                    (task) => task._id === active.id
-                );
-                if (activeTaskIndex === -1) return;
+                    const activeTaskIndex = activeData.group.tasks.findIndex(
+                        (task) => task._id === active.id
+                    );
+                    if (activeTaskIndex === -1) return;
 
-                const updatedBoard = { ...board };
-                const [movedTask] = updatedBoard.groups[activeGroupIndex].tasks.splice(activeTaskIndex, 1);
-                movedTask.groupId = updatedBoard.groups[overGroupIndex]._id;
-                updatedBoard.groups[overGroupIndex].tasks.push(movedTask);
-                // Optionally, you could update the board preview here:
-                updateBoard(updatedBoard)
-            }
-        }, 50),
-        [board, findValueOfItems]
+                    const updatedBoard = { ...board };
+                    const [movedTask] = updatedBoard.groups[activeGroupIndex].tasks.splice(activeTaskIndex, 1);
+                    movedTask.groupId = updatedBoard.groups[overGroupIndex]._id;
+                    updatedBoard.groups[overGroupIndex].tasks.push(movedTask);
+                    updateBoard(updatedBoard);
+                }
+            }, 50),
+        [board, findValueOfItems, isTask, isGroup]
     );
 
-    // DRAG END: Update the board state permanently based on where the item was dropped.
+    const handleDragMove = useCallback((event) => {
+        throttledDragMove(event);
+    }, [throttledDragMove]);
+
+    // DRAG END: Update the board state permanently.
     const handleDragEnd = useCallback(
         (event) => {
             const { active, over } = event;
@@ -205,28 +228,21 @@ export function BoardDetails() {
                 }
 
                 const updatedBoard = structuredClone(board);
-                // Get pointer position and decide insertion index based on target's midpoint
+                // Get pointer position to decide insertion index
                 const pointerY = event.activatorEvent?.clientY || 0;
                 const overElement = document.querySelector(`[data-task-id="${over.id}"]`);
                 let newIndex = overTaskIndex;
                 if (overElement) {
                     const { top, height } = overElement.getBoundingClientRect();
                     const midY = top + height / 2;
-                    if (pointerY > midY) {
-                        newIndex = overTaskIndex + 1;
-                    } else {
-                        newIndex = overTaskIndex;
-                    }
+                    newIndex = pointerY > midY ? overTaskIndex + 1 : overTaskIndex;
                 }
 
-                // If reordering within the same group, adjust index if needed
                 if (activeData.group._id === overData.group._id) {
                     const [movedTask] = updatedBoard.groups[activeGroupIndex].tasks.splice(
                         activeTaskIndex,
                         1
                     );
-                    // If the active task was originally before the target, and we're inserting after,
-                    // the index needs to be adjusted.
                     if (activeTaskIndex < newIndex) {
                         newIndex = newIndex - 1;
                     }
@@ -293,15 +309,15 @@ export function BoardDetails() {
             }
             setActiveId(null);
         },
-        [board, findValueOfItems]
+        [board, findValueOfItems, isGroup, isTask]
     );
 
-    const activeItem =
-        activeId &&
-        (activeId.toString().includes("g")
-            ? findValueOfItems(activeId, "group")
-            : findValueOfItems(activeId, "task"));
-
+    const activeItem = useMemo(
+        () => activeId &&
+            (activeId.toString().includes("g")
+                ? findValueOfItems(activeId, "group")
+                : findValueOfItems(activeId, "task"))
+        , [activeId])
     if (!board || !board.groups) return null;
 
     return (
