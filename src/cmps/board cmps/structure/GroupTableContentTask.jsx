@@ -26,6 +26,7 @@ const GroupTableContentTask = ({ task, group }) => {
         transform: CSS.Transform.toString(transform),
         transition,
         zIndex: isDragging ? 30000 : 0,
+        opacity: isDragging ? 0 : 1
     };
 
     console.log(1);

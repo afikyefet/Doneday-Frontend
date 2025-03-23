@@ -20,6 +20,7 @@ import { AddGroup } from "./structure/AddGroup";
 import GroupContainer from "./structure/GroupContainer";
 import GroupContainerPreview from "./structure/GroupContainerPreview";
 import GroupTableContentTask from "./structure/GroupTableContentTask";
+import GroupTableContentTaskPreview from "./structure/GroupTableContentTaskPreview";
 
 export function BoardDetails() {
     const board = useSelector((storeState) => storeState.boardModule.board);
@@ -299,7 +300,7 @@ export function BoardDetails() {
         <section className="board-details">
             <DndContext
                 sensors={sensors}
-                collisionDetection={collisionDetectionStrategy}
+                collisionDetection={closestCenter}
                 onDragStart={handleDragStart}
                 onDragMove={handleDragMove}
                 onDragEnd={handleDragEnd}
@@ -318,10 +319,10 @@ export function BoardDetails() {
                     {activeItem ? (
                         activeId.toString().includes("t") ? (
                             <section className="group-table-content">
-                                <GroupTableContentTask task={activeItem.task} group={activeItem.group} />
+                                <GroupTableContentTaskPreview task={activeItem.task} group={activeItem.group} />
                             </section>
                         ) : (
-                            <GroupContainer isForceCollapsed={true} group={activeItem} selectedTasks={selectedTasks} />
+                            <GroupContainerPreview isForceCollapsed={true} group={activeItem} selectedTasks={selectedTasks} />
                         )
                     ) : null}
                 </DragOverlay>

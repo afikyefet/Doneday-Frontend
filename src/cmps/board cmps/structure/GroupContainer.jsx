@@ -46,6 +46,7 @@ const GroupContainer = ({ group, index, isForceCollapsed }) => {
         transform: CSS.Translate.toString(transform),
         transition,
         zIndex: isDragging ? 30000 : 0,
+        opacity: isDragging ? 0 : 1
     };
 
     return <section type='group' ref={setDroppableRef} className="group-container" role="rowgroup" style={
