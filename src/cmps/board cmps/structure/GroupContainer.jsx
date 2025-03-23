@@ -9,9 +9,9 @@ import GroupSummaryRow from "./GroupSummaryRow";
 import GroupTableContent from "./GroupTableContent";
 import GroupTableFooter from "./GroupTableFooter";
 import GroupTableHeader from "./GroupTableHeader";
-const GroupContainer = ({ group, index }) => {
+const GroupContainer = ({ group, index, isForceCollapsed }) => {
 
-    const [isCollapsed, setIsCollapsed] = useState(false);
+    const [isCollapsed, setIsCollapsed] = useState(false || isForceCollapsed);
     const { attributes, listeners, setNodeRef: setDraggableRef, transform, transition, isDragging } = useSortable(
         { id: group._id, data: { type: 'group' }, activationConstraint: { distance: 5 } });
     const { setNodeRef: setDroppableRef } = useDroppable({ id: group._id });
@@ -33,8 +33,8 @@ const GroupContainer = ({ group, index }) => {
     }, [isGloballyCollapsed])
 
     useEffect(() => {
-        if (isDragging !== isGloballyCollapsed) {
-            dispatch({ type: SET_GLOBALLY_COLLAPSED, isGloballyCollapsed: isDragging })
+        if (isDragging !== isGloballyCollapsed || isForceCollapsed) {
+            dispatch({ type: SET_GLOBALLY_COLLAPSED, isGloballyCollapsed: isDragging || isForceCollapsed })
         }
     }, [isDragging])
 
@@ -51,6 +51,7 @@ const GroupContainer = ({ group, index }) => {
     return <section type='group' ref={setDroppableRef} className="group-container" role="rowgroup" style={
         {
             // zIndex: 2000 - (index * 10),
+            // opacity: isForceCollapsed ? 0 : 1,
             ...style
         }}>
         <section role="rowheader" className="group-header-container"

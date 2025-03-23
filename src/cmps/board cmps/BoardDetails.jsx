@@ -2,6 +2,7 @@ import {
     closestCenter,
     closestCorners,
     DndContext,
+    DragOverlay,
     KeyboardSensor,
     MouseSensor,
     PointerSensor,
@@ -17,6 +18,8 @@ import { useSelector } from "react-redux";
 import { updateBoard } from "../../store/actions/board.actions";
 import { AddGroup } from "./structure/AddGroup";
 import GroupContainer from "./structure/GroupContainer";
+import GroupContainerPreview from "./structure/GroupContainerPreview";
+import GroupTableContentTask from "./structure/GroupTableContentTask";
 
 export function BoardDetails() {
     const board = useSelector((storeState) => storeState.boardModule.board);
@@ -284,6 +287,12 @@ export function BoardDetails() {
         [board, findValueOfItems]
     );
 
+    const activeItem =
+        activeId &&
+        (activeId.toString().includes("g")
+            ? findValueOfItems(activeId, "group")
+            : findValueOfItems(activeId, "task"));
+
     if (!board || !board.groups) return null;
 
     return (
@@ -305,6 +314,17 @@ export function BoardDetails() {
                     ))}
                 </SortableContext>
                 <AddGroup />
+                <DragOverlay>
+                    {activeItem ? (
+                        activeId.toString().includes("t") ? (
+                            <section className="group-table-content">
+                                <GroupTableContentTask task={activeItem.task} group={activeItem.group} />
+                            </section>
+                        ) : (
+                            <GroupContainer isForceCollapsed={true} group={activeItem} selectedTasks={selectedTasks} />
+                        )
+                    ) : null}
+                </DragOverlay>
             </DndContext>
         </section>
     );
