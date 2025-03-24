@@ -2,25 +2,21 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { EditableText } from "@vibe/core";
-import React from "react";
-import { useSelector } from "react-redux";
-import { userService } from "../../../services/user";
-import { makeId } from "../../../services/util.service";
-import { updateBoard } from "../../../store/actions/board.actions";
+import React, { useCallback } from "react";
 import { addSelectedTask, removeSelectedTask } from "../../../store/actions/taskSelect.actions";
 import DynamicColumn from "./DynamicColumn";
 import GroupPreRow from "./GroupPreRow";
 import GroupScrollableColumns from "./GroupScrollableColumns";
 import GroupStickyColumns from "./GroupStickyColumns";
 import TaskDetailsTriggerCell from "./TaskDetailsTriggerCell";
+import { userService } from "../../../services/user";
+import { makeId } from "../../../services/util.service";
 
-const GroupTableContentTask = ({ task, group }) => {
-    const selectedTasks = useSelector(storeState => storeState.taskSelectModule.selectedTasks);
-    const cmpOrder = useSelector(state => state.boardModule.cmpOrder);
-    const board = useSelector(state => state.boardModule.board);
-
-    // The setNodeRef and style must remain on the root container.
-    const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: task._id, data: { type: 'task' } });
+const GroupTableContentTask = ({ task, group, onUpdateTask, selectedTasks, cmpOrder }) => {
+    const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+        id: task._id,
+        data: { type: 'task' }
+    });
     const style = {
         transform: CSS.Transform.toString(transform),
         transition,
@@ -28,25 +24,16 @@ const GroupTableContentTask = ({ task, group }) => {
         opacity: isDragging ? 0 : 1
     };
 
-    console.log(1);
+    console.log("GroupTableContentTask rendered for task", task._id);
 
-
-    const handleCellUpdate = async (cmpType, value) => {
+    // Handler to update a specific cell (attribute) of the task.
+    const handleCellUpdate = useCallback(async (cmpType, value) => {
         try {
-            const newBoard = { ...board };
-            const groupIdx = newBoard.groups.findIndex(g => g._id === group._id);
-            if (groupIdx === -1) throw new Error(`Group with id ${group._id} not found`);
-
-            const taskIdx = newBoard.groups[groupIdx].tasks.findIndex(t => t._id === task._id);
-            if (taskIdx === -1) throw new Error(`Task with id ${task._id} not found`);
-
-            const foundTask = newBoard.groups[groupIdx].tasks[taskIdx]
-
-            const previousValue = structuredClone(foundTask[cmpType]);
-            foundTask[cmpType] = value;
+            const updatedTask = { ...task };
+            const previousValue = structuredClone(updatedTask[cmpType]);
+            updatedTask[cmpType] = value;
 
             const loggedUser = userService.getLoggedinUser();
-
             const user = {
                 _id: loggedUser._id,
                 name: loggedUser.fullname,
@@ -55,72 +42,65 @@ const GroupTableContentTask = ({ task, group }) => {
 
             const newActivity = {
                 _id: makeId(),
-                user: user,
+                user,
                 previous: previousValue,
                 current: value,
-                cmpType: cmpType,
+                cmpType,
                 at: Date.now()
-            }
+            };
 
-            const activities = [newActivity, ...(Array.isArray(foundTask.activities) ? foundTask.activities : [])];
-            foundTask.activities = activities;
+            updatedTask.activities = [newActivity, ...(Array.isArray(updatedTask.activities) ? updatedTask.activities : [])];
 
-            await updateBoard(newBoard);
+            await onUpdateTask(updatedTask);
         } catch (error) {
             console.error("Error updating task cell:", error);
         }
-    };
+    }, [task, onUpdateTask]);
 
-    async function handleChangeSelect(ev, groupId, taskId) {
+    const handleChangeSelect = useCallback(async (ev) => {
         if (ev.target.checked) {
-            await addSelectedTask(groupId, taskId);
+            await addSelectedTask(group._id, task._id);
         } else {
-            await removeSelectedTask(groupId, taskId);
+            await removeSelectedTask(group._id, task._id);
         }
-    }
+    }, [group._id, task._id]);
 
-    const handleChangeTitle = async (taskTitle) => {
+    const handleChangeTitle = useCallback(async (newTitle) => {
         try {
-            const newBoard = { ...board };
-            const groupIdx = newBoard.groups.findIndex(g => g._id === group._id);
-            if (groupIdx === -1) throw new Error(`Group with id ${group._id} not found`);
-
-            const taskIdx = newBoard.groups[groupIdx].tasks.findIndex(t => t._id === task._id);
-            if (taskIdx === -1) throw new Error(`Task with id ${task._id} not found`);
-
-            const foundTask = newBoard.groups[groupIdx].tasks[taskIdx]
-            const previousValue = structuredClone(foundTask.taskTitle);
-            foundTask.taskTitle = taskTitle;
+            const updatedTask = { ...task };
+            const previousValue = structuredClone(updatedTask.taskTitle);
+            updatedTask.taskTitle = newTitle;
 
             const user = userService.getLoggedinUser();
-
-            const newActivity = {
-                _id: makeId(),
-                user: {
-                    _id: user._id,
-                    name: user.fullname,
-                    avatar: user.imgUrl
+            updatedTask.activities = [
+                {
+                    _id: makeId(),
+                    user: {
+                        _id: user._id,
+                        name: user.fullname,
+                        avatar: user.imgUrl
+                    },
+                    previous: previousValue,
+                    current: newTitle,
+                    cmpType: 'taskTitle',
+                    at: Date.now()
                 },
-                previous: previousValue,
-                current: taskTitle,
-                cmpType: 'taskTitle',
-                at: Date.now()
-            }
+                ...(Array.isArray(updatedTask.activities) ? updatedTask.activities : [])
+            ];
 
-            const activities = [newActivity, ...(Array.isArray(foundTask.activities) ? foundTask.activities : [])];
-            foundTask.activities = activities;
-
-            await updateBoard(newBoard);
+            await onUpdateTask(updatedTask);
         } catch (error) {
             console.error("Error updating task title:", error);
         }
-    };
+    }, [task, onUpdateTask]);
 
-    function isTaskSelected(groupId = "", taskId = "") {
-        const groupSelected = selectedTasks.find(selectedGroups => selectedGroups.groupId === groupId);
-        if (!groupSelected) return false;
-        return groupSelected.tasks.includes(taskId);
-    }
+    const isTaskSelected = useCallback(
+        (groupId, taskId) => {
+            const groupSelected = selectedTasks.find(selected => selected.groupId === groupId);
+            return groupSelected ? groupSelected.tasks.includes(taskId) : false;
+        },
+        [selectedTasks]
+    );
 
     return (
         <div
@@ -128,19 +108,20 @@ const GroupTableContentTask = ({ task, group }) => {
             style={style}
             role="listitem"
             className="table-task-row"
-            type='task'
+            type="task"
         >
             <GroupStickyColumns>
                 <GroupPreRow
                     crudlType="task"
                     isChecked={isTaskSelected(group._id, task._id)}
-                    onCheckBox={(ev) => handleChangeSelect(ev, group._id, task._id)}
+                    onCheckBox={(ev) => handleChangeSelect(ev)}
                     group={group}
                     task={task}
                 />
                 <div className="min-table-cell table-cell-first-column task-title default-cell-color"
                     {...attributes}
-                    {...listeners}>
+                    {...listeners}
+                >
                     <div
                         className="task-title-container"
                         onMouseDown={(e) => e.stopPropagation()}
@@ -156,7 +137,7 @@ const GroupTableContentTask = ({ task, group }) => {
                     </div>
                     <TaskDetailsTriggerCell task={task} />
                 </div>
-            </GroupStickyColumns >
+            </GroupStickyColumns>
             <GroupScrollableColumns>
                 {cmpOrder.map(cmpType =>
                     <DynamicColumn
@@ -167,8 +148,8 @@ const GroupTableContentTask = ({ task, group }) => {
                     />
                 )}
             </GroupScrollableColumns>
-        </div >
+        </div>
     );
-}
+};
 
-export default GroupTableContentTask;
+export default React.memo(GroupTableContentTask);

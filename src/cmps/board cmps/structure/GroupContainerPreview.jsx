@@ -20,6 +20,7 @@ const GroupContainerPreview = ({ group, index, isForceCollapsed }) => {
     const isGloballyCollapsed = useSelector(state => state.boardModule.isGloballyCollapsed)
     const dispatch = useDispatch();
 
+    console.log("GroupTableContentTask");
 
 
 

@@ -1,30 +1,25 @@
-import { SortableContext } from "@dnd-kit/sortable";
-import React, { useEffect, useState } from "react";
-import { useSelector } from "react-redux";
+// GroupTableContent.jsx
+import React, { useMemo } from "react";
 import GroupTableContentTask from "./GroupTableContentTask";
 
-const GroupTableContent = ({ group }) => {
-    // Maintain a local state for tasks
-    const [tasks, setTasks] = useState(group.tasks || []);
-    const board = useSelector(stateStore => stateStore.boardModule.board)
-
-    useEffect(() => {
-        setTasks(group.tasks);
-    }, [group.tasks]);
+const GroupTableContent = ({ group, onUpdateTask, selectedTasks, cmpOrder }) => {
+    const taskIds = useMemo(() => group?.tasks?.map(task => task._id), [group.tasks]);
 
     return (
-        <SortableContext items={group?.tasks?.map(group => group._id)}>
-            <section className="group-table-content">
-                {tasks.map(task =>
-                    <GroupTableContentTask
-                        key={task._id}
-                        task={task}
-                        group={group}
-                    />
-                )}
-            </section>
-        </SortableContext>
+        <section className="group-table-content">
+            {group.tasks.map(task => (
+                <GroupTableContentTask
+                    key={task._id}
+                    task={task}
+                    group={group}
+                    onUpdateTask={onUpdateTask}
+                    selectedTasks={selectedTasks}
+                    cmpOrder={cmpOrder}
+                />
+            ))}
+        </section>
+        // </SortableContext >
     );
-}
+};
 
-export default GroupTableContent;
+export default React.memo(GroupTableContent);
