@@ -1,5 +1,5 @@
-import { DndContext, KeyboardSensor, MouseSensor, PointerSensor, TouchSensor, useSensor, useSensors } from "@dnd-kit/core"
-import { arrayMove, SortableContext, sortableKeyboardCoordinates } from "@dnd-kit/sortable"
+import { DndContext, MouseSensor, PointerSensor, TouchSensor, useSensor, useSensors } from "@dnd-kit/core"
+import { arrayMove, SortableContext } from "@dnd-kit/sortable"
 import { useMemo } from "react"
 import { useSelector } from "react-redux"
 import { setBoard, updateBoard } from "../../store/actions/board.actions"
@@ -14,9 +14,6 @@ export function BoardDetails() {
         useSensor(PointerSensor),
         useSensor(MouseSensor),
         useSensor(TouchSensor),
-        useSensor(KeyboardSensor, {
-            coordinateGetter: sortableKeyboardCoordinates,
-        })
     )
 
     const onDragEnd = (dragEvent) => {

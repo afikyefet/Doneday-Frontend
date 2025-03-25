@@ -11,7 +11,7 @@ const GroupSummaryRow = ({ group, isCollapsed }) => {
     return <section className="summary-row-wrapper">
         {!isCollapsed && <div className="spacer-div summery-white"></div>}
         <div className="summary-row">
-            <GroupScrollableColumns>
+            <GroupScrollableColumns last={true}>
                 {cmpOrder.map(cmp => <DynamicSummary key={cmp + " summery"} cmpType={cmp} group={group} />)}
             </GroupScrollableColumns>
         </div>

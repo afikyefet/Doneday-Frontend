@@ -15,7 +15,7 @@
 .ghost-div {
   width: 100%;
   visibility: hidden;
-  height: 0px;
+  height: 76px;
 }
 
 .task-left-indicator {
@@ -86,7 +86,7 @@
 
   &>*:last-child .column-filler {
     border-right: 1px solid $layout-border-color;
-    background-color: red;
+    // background-color: red;
   }
 
   .column-filler {

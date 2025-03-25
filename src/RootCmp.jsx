@@ -13,7 +13,7 @@ import { Board } from './pages/Board'
 import { Chart } from "./pages/Chart.jsx"
 import { socketService } from "./services/socket.service.js"
 import { userService } from "./services/user"
-import { getCmdSetBoard, loadBoards, loadMembers } from "./store/actions/board.actions.js"
+import { addNewNotification, getCmdSetBoard, loadBoards, loadMembers, loadNotifications, updateBoardRemoved } from "./store/actions/board.actions.js"
 import { store } from "./store/store.js"
 
 export function RootCmp() {
@@ -30,13 +30,16 @@ const AuthenticatedRoutes = () => {
     useEffect(() => {
         loadBoards();
         loadMembers();
+        loadNotifications();
 
         socketService.on('updated-board', boardUpdate);
-        socketService.on('deleted-board', boardDeleted)
+        socketService.on('deleted-board', boardDeleted);
+        socketService.on('new-notification', onNotification);
 
         return () => {
             socketService.off('updated-board', boardUpdate);
             socketService.off('deleted-board', boardDeleted)
+            socketService.off('new-notification', onNotification);
         }
     }, [])
 
@@ -45,7 +48,11 @@ const AuthenticatedRoutes = () => {
     }
 
     function boardDeleted(boardId) {
-        console.log('🚀 ~ file: RootCmp.jsx ~ line 19 ~ boardDeleted ~ boardId:', boardId)
+        updateBoardRemoved(boardId);
+    }
+
+    function onNotification(notification) {
+        addNewNotification(notification);
     }
 
     return <div className="main-container">

@@ -17,7 +17,9 @@ export function BoardFilter() {
 
 
     useEffect(() => {
-        const hasFilters = filterBy && Object.values(filterBy).some(value => {
+        const hasFilters = filterBy && Object.entries(filterBy).some(([key, value]) => {
+            if (key === 'text') return false // 👈 ignore 'text' key completely
+
             if (Array.isArray(value)) {
                 return value.length > 0
             }
@@ -26,6 +28,7 @@ export function BoardFilter() {
             }
             return false
         })
+
         setIsFilter(hasFilters)
     }, [filterBy])
 

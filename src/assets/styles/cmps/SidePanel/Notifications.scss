@@ -1,0 +1,63 @@
+@use "../../setup/variables" as *;
+
+.notification-preview {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  column-gap: 4px;
+  border-radius: 8px;
+  padding: 12px 8px;
+  margin-bottom: 12px;
+  background-color: $primary-highlighted-color;
+  cursor: pointer;
+
+  &:hover {
+    background-color: $primary-background-hover-color;
+  }
+}
+
+.notification-preview-content {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 8px;
+  align-items: flex-start;
+  padding-top: 8px;
+}
+
+.notification-preview-name-time {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.unread-notification {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: $primary-color;
+}
+
+.dynamic-desc-title,
+.name-desc {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 4px;
+}
+
+.notification-preview-time {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+}
+
+.dynamic-desc-title {
+  padding-left: 4px;
+  color: $link-color;
+}
+
+.notification-preview-name {
+  font-weight: bold;
+}

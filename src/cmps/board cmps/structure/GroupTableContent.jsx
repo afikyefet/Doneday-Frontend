@@ -1,5 +1,5 @@
-import { DndContext, KeyboardSensor, MouseSensor, PointerSensor, TouchSensor, closestCenter, useSensor, useSensors } from "@dnd-kit/core";
-import { SortableContext, arrayMove, sortableKeyboardCoordinates, verticalListSortingStrategy } from "@dnd-kit/sortable";
+import { DndContext, MouseSensor, PointerSensor, TouchSensor, closestCenter, useSensor, useSensors } from "@dnd-kit/core";
+import { SortableContext, arrayMove, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { useCallback, useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { updateBoard } from "../../../store/actions/board.actions";
@@ -19,9 +19,6 @@ const GroupTableContent = ({ group }) => {
         useSensor(PointerSensor),
         useSensor(MouseSensor),
         useSensor(TouchSensor),
-        useSensor(KeyboardSensor, {
-            coordinateGetter: sortableKeyboardCoordinates,
-        })
     )
 
     const onDragEnd = useCallback(async (dragEvent) => {

@@ -11,8 +11,9 @@
   position: relative;
   z-index: 20;
   background-color: white;
+  cursor: grab;
 
-  & > .spacer-div {
+  &>.spacer-div {
     flex-grow: 1;
     width: 100%;
   }
@@ -51,7 +52,7 @@
     display: flex;
     align-items: center;
     width: 100%;
-    cursor: grab;
+    cursor: default !important;
 
     .group-color-picker {
       width: 16px;
@@ -124,7 +125,7 @@
     margin: 0;
   }
 
-  & > .group-heading {
+  &>.group-heading {
     height: 40px;
   }
 }
@@ -170,7 +171,10 @@
 }
 
 .group-header-container {
-  position: sticky;
   top: 156px;
   z-index: 2000;
+}
+
+.sticky-header {
+  position: sticky;
 }

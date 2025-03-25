@@ -25,9 +25,11 @@ const BoardHeadersTabList = () => {
     };
 
     // Log values for debugging
-    console.log('Current path:', location.pathname);
-    console.log('Is chart view:', isChartView);
-    console.log('Active index:', isChartView ? 1 : 0);
+    // if (import.meta.env.DEV) {
+    //     console.log('Current path:', location.pathname);
+    //     console.log('Is chart view:', isChartView);
+    //     console.log('Active index:', isChartView ? 1 : 0);
+    // }
 
     return (
         <Flex className="tabs" flexGrow={1} justify="center" style={{ marginTop: '8px' }}>

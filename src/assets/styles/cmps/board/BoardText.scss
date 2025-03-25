@@ -1,0 +1,60 @@
+.board-text {}
+
+.text-dialog {
+    width: 300px;
+    padding: 0;
+
+    .text-header {
+        display: flex;
+        align-items: center;
+        padding: 8px 24px;
+
+        * {
+            margin-right: 12px;
+        }
+
+    }
+
+    .text-body {
+        padding: 0px 24px 12px 24px;
+
+        .text-row {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            margin-bottom: 8px;
+            justify-content: flex-start;
+        }
+
+        .text-row .text-list {
+            flex: 1;
+            margin-right: 8px;
+        }
+
+        .text-row .ascending-descending {
+            width: 150px;
+        }
+
+        .text-row .icon-btn {
+            width: 100%;
+            color: #6b778c;
+            padding: 4px 8px;
+        }
+
+        .text-row .icon-btn:hover {
+            background-color: transparent;
+            color: #323338;
+        }
+
+    }
+}
+
+.text-btn {
+    &.active {
+        background-color: #cce5ff;
+    }
+
+    &.active:hover {
+        background-color: #cce5ff !important;
+    }
+}

@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
-import { boardService } from "../../../../services/board/board.service.local";
+import { boardService } from "../../../../services/board";
 import { userService } from "../../../../services/user";
+import { makeId } from "../../../../services/util.service";
 import { updateBoard } from "../../../../store/actions/board.actions";
 import SidePanelUpdateList from "./updates/SidePanelUpdateList";
 import SidePanelWriteUpdate from "./updates/SidePanelWriteUpdate";
@@ -22,13 +23,14 @@ const SidePanelTaskMessages = ({ task }) => {
         setUpdates(newUpdatesArray);
     }
 
-    const handleUpdateReply = async (newReply) => {
+    const handleUpdateReply = async (newReply, originalReply) => {
         try {
             const updateIdx = updates.findIndex(update => update._id === newReply._id);
             const newUpdatesArray = [...updates];
             newUpdatesArray[updateIdx] = newReply;
 
             const newBoard = { ...board };
+            let taskDetails;
             let foundTask = false;
             for (let group of newBoard.groups) {
                 const taskIndex = group.tasks.findIndex(t => t._id === task._id);
@@ -37,13 +39,35 @@ const SidePanelTaskMessages = ({ task }) => {
                         reply._id === newReply._id ? newReply : reply
                     );
                     foundTask = true;
+                    taskDetails = structuredClone(group.tasks[taskIndex]);
                     break;
                 }
             }
             if (!foundTask) {
                 throw new Error("Task not found in board");
             }
+
+            const loggedUser = userService.getLoggedinUser();
+
+            const newNotification = {
+                _id: makeId(),
+                by: {
+                    _id: loggedUser._id,
+                    name: loggedUser.fullname,
+                    avatar: loggedUser.imgUrl
+                },
+                text: originalReply,
+                task: {
+                    _id: taskDetails._id,
+                    taskTitle: taskDetails.taskTitle,
+                },
+                type: 'reply',
+                at: Date.now()
+            }
+
             await updateBoard(newBoard);
+            await boardService.emitNotification(newNotification);
+
             setUpdates(newUpdatesArray);
         } catch (error) {
             console.error("Error updating reply:", error);
@@ -64,6 +88,7 @@ const SidePanelTaskMessages = ({ task }) => {
             }
 
             const newBoard = { ...board };
+            let taskDetails;
             let foundTask = false;
             for (let group of newBoard.groups) {
                 const taskIndex = group.tasks.findIndex(t => t._id === task._id);
@@ -73,13 +98,34 @@ const SidePanelTaskMessages = ({ task }) => {
                     }
                     group.tasks[taskIndex].replies.unshift(newUpdate);
                     foundTask = true;
+                    taskDetails = structuredClone(group.tasks[taskIndex]);
                     break;
                 }
             }
             if (!foundTask) {
                 throw new Error("Task not found in board");
             }
+
+
+
+            const newNotification = {
+                _id: makeId(),
+                by: {
+                    _id: loggedUser._id,
+                    name: loggedUser.fullname,
+                    avatar: loggedUser.imgUrl
+                },
+                text: newUpdate.text,
+                task: {
+                    _id: taskDetails._id,
+                    taskTitle: taskDetails.taskTitle,
+                },
+                type: 'comment',
+                at: Date.now()
+            }
             await updateBoard(newBoard);
+
+            await boardService.emitNotification(newNotification);
             setUpdates(prevUpdates => [newUpdate, ...prevUpdates]);
         } catch (error) {
             console.error("Error creating new update:", error);

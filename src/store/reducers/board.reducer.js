@@ -17,15 +17,22 @@ export const SET_GLOBALLY_COLLAPSED = 'SET_GLOBALLY_COLLAPSED';
 
 export const REMOVE_SELECTED_TASK = 'REMOVE_SELECTED_TASK';
 
+export const UPDATE_NOTIFICATIONS = 'UPDATE_NOTIFICATIONS';
+
+export const NOTIFICATION_INDICATOR = 'NOTIFICATION_INDICATOR';
+
+
 
 
 const initialState = {
     boards: [],
     board: null,
+    notificationIndicator: false,
     selectedTasks: [],
     lastRemovedBoard: null,
     statusLabels: [],
     priorityLabels: [],
+    notifications: [],
     filterBy: {},
     sortBy: [],
     cmpOrder: ["status",
@@ -41,6 +48,11 @@ const initialState = {
 export function boardReducer(state = initialState, action) {
     let boards;
     switch (action.type) {
+        case NOTIFICATION_INDICATOR:
+            return {
+                ...state,
+                notificationIndicator: action.state
+            }
         case SET_BOARDS:
             return {
                 ...state,
@@ -86,6 +98,12 @@ export function boardReducer(state = initialState, action) {
                 ...state,
                 isGloballyCollapsed: action.isGloballyCollapsed
             };
+
+        case UPDATE_NOTIFICATIONS:
+            return {
+                ...state,
+                notifications: action.notifications
+            }
 
         case ADD_MEMBERS: {
             const groupId = action.groupId;

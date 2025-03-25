@@ -28,6 +28,12 @@
     border-bottom: 1px solid $layout-border-color;
     background-color: white;
   }
+
+  .last-summary {
+    border-bottom: 1px solid $layout-border-color;
+    border-top: none;
+    // background-color: red;
+  }
 }
 
 .status-summary {

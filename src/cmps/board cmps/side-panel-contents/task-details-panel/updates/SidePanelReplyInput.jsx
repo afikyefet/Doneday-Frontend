@@ -1,6 +1,6 @@
 import { Avatar, Button, TextArea } from "@vibe/core";
 import { forwardRef, useEffect, useState } from "react";
-import { boardService } from "../../../../../services/board/board.service.local";
+import { boardService } from "../../../../../services/board";
 import { userService } from "../../../../../services/user";
 import { cn } from "../../../../../services/util.service";
 

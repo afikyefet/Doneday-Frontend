@@ -40,7 +40,7 @@ const ExternalHeader = () => {
             <div id="intersection-element" style={{ position: 'absolute', top: '0' }} ref={baseDivRef}></div>
             <header className="external-header" ref={headerRef}>
                 <div className="external-header-container">
-                    <img src="/public/img/logo-transparent.png" alt="logo" className="external-header-logo" />
+                    <img src="/img/logo-transparent.png" alt="logo" className="external-header-logo" />
                     <nav className="external-nav">
                         <section className="external-nav-first-menu">
 

@@ -33,8 +33,11 @@ const SidePanelTask = () => {
     }, [taskId, board]);
 
 
-    return <SidePanelWrapper heading={task?.taskTitle || 'loading...'}>
-        <SidePanelTaskContentTabs onTabChange={setCurrentTab} />
+    return <SidePanelWrapper
+        heading={task?.taskTitle || 'loading...'}
+        component={<SidePanelTaskContentTabs onTabChange={setCurrentTab} />}
+    >
+
         {currentTab === tabs.messages && <SidePanelTaskMessages task={task} />}
         {currentTab === tabs.activity && <SidePanelTaskActivity task={task} />}
     </SidePanelWrapper>

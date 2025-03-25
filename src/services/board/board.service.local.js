@@ -23,7 +23,6 @@ export const boardService = {
     generateBoard,
     generateGroup,
     generateTask,
-    getEmptyReply,
     // Message Operations
     addBoardMsg,
     // Filter
@@ -36,7 +35,7 @@ export const boardService = {
     getChartDataFromBoard,
     getMemberChartConfig,
     getChartConfig,
-    getPriorityDataFromBoard
+    getPriorityDataFromBoard,
 };
 
 
@@ -101,33 +100,59 @@ async function getById(boardId, filterBy = {}, sortBy = []) {
         ? filterBy.taskTitle.toLowerCase()
         : null;
 
+    const textFilter = filterBy.text && filterBy.text.trim().toLowerCase();
+
     const getStatusIndex = (status) => statusList.findIndex(s => s.value === status);
     const getPriorityIndex = (priority) => priorityList.findIndex(p => p.value === priority);
 
+    const matchesTextDeep = (obj, text) => {
+        if (!obj || typeof text !== 'string') return false;
+
+        const searchIn = (val) => {
+            if (typeof val === 'string') {
+                return val.toLowerCase().includes(text);
+            }
+            if (Array.isArray(val)) {
+                return val.some(searchIn);
+            }
+            if (typeof val === 'object' && val !== null) {
+                return Object.values(val).some(searchIn);
+            }
+            return false;
+        };
+
+        return searchIn(obj);
+    };
+
     const filteredGroups = groups.map(group => {
         const tasks = Array.isArray(group.tasks) ? group.tasks : [];
+
         const filteredTasks = tasks.filter(task => {
-            const priorityMatch = filterBy.Priority && filterBy.Priority.length > 0
+            const priorityMatch = filterBy.Priority?.length
                 ? filterBy.Priority.includes(task.priority)
                 : true;
 
-            const membersMatch = filterBy.Members && filterBy.Members.length > 0
-                ? task.members && task.members.some(member => filterBy.Members.includes(member.name))
+            const membersMatch = filterBy.Members?.length
+                ? task.members?.some(member => filterBy.Members.includes(member.name))
                 : true;
 
-            const statusMatch = filterBy.Status && filterBy.Status.length > 0
+            const statusMatch = filterBy.Status?.length
                 ? filterBy.Status.includes(task.status)
                 : true;
 
             const titleMatch = taskTitleFilter
-                ? task.taskTitle && task.taskTitle.toLowerCase().includes(taskTitleFilter)
+                ? task.taskTitle?.toLowerCase().includes(taskTitleFilter)
                 : true;
 
             const timelineMatch = filterBy.Timeline
                 ? task.timeline?.endDate && new Date(task.timeline.endDate) <= new Date(filterBy.Timeline)
                 : true;
 
-            return priorityMatch && membersMatch && statusMatch && titleMatch && timelineMatch;
+            const textMatch = textFilter
+                ? matchesTextDeep(task, textFilter)
+                : true;
+
+            return priorityMatch && membersMatch && statusMatch && titleMatch && timelineMatch && textMatch;
         });
 
         const sortedTasks = filteredTasks.sort((taskA, taskB) => {
@@ -138,38 +163,38 @@ async function getById(boardId, filterBy = {}, sortBy = []) {
                 } else if (title === 'priority') {
                     comparison = getPriorityIndex(taskA.priority) - getPriorityIndex(taskB.priority);
                 } else if (title === 'name') {
-                    comparison = taskA.taskTitle.localeCompare(taskB.taskTitle)
+                    comparison = taskA.taskTitle.localeCompare(taskB.taskTitle);
                 } else if (title === 'timeline') {
-                    const dateA = new Date(taskA.timeline?.endDate || 0)
-                    const dateB = new Date(taskB.timeline?.endDate || 0)
+                    const dateA = new Date(taskA.timeline?.endDate || 0);
+                    const dateB = new Date(taskB.timeline?.endDate || 0);
                     if (isNaN(dateA) && isNaN(dateB)) {
-                        comparison = 0
+                        comparison = 0;
                     } else if (isNaN(dateA)) {
-                        comparison = 1
+                        comparison = 1;
                     } else if (isNaN(dateB)) {
-                        comparison = -1
+                        comparison = -1;
                     } else {
-                        comparison = dateA - dateB
+                        comparison = dateA - dateB;
                     }
                 }
                 if (comparison !== 0) return comparison * order;
             }
-            return 0
-        }
-        )
+            return 0;
+        });
+
         return {
             ...group,
             tasks: sortedTasks
         };
     });
 
-
     return {
         ...board,
         groups: filteredGroups
     };
-
 }
+
+
 
 function getBoards() {
     return query()
@@ -265,19 +290,6 @@ function generateTask(groupId = '') {
         status: getRandomStatus(),
         priority: getRandomPriority()
     };
-}
-
-function getEmptyReply() {
-    return ({
-        _id: crypto.randomUUID(),
-        text: '',
-        by: {
-            _id: 'user101',
-            name: 'User 101',
-            avatar: ''
-        },
-        likedBy: []
-    })
 }
 
 async function addBoardMsg(boardId, txt) {
@@ -408,7 +420,7 @@ function getMemberTaskDistribution(board) {
             count: memberCounts[name].count,
             color: memberCounts[name].color
         }));
-    
+
     if (noMembersCount > 0) {
         membersArray.push({
             name: "No members",
@@ -416,20 +428,20 @@ function getMemberTaskDistribution(board) {
             color: "#CCCCCC"
         });
     }
-    
+
     const sortedMembers = membersArray.sort((a, b) => a.count - b.count);
 
     const actualMembers = sortedMembers.filter(member => member.name !== "No members");
     const memberColors = ["#fb275d", "#2a5699", "#e4901c"];
-    
+
     actualMembers.forEach((member, index) => {
         member.color = memberColors[index % memberColors.length];
     });
-    
+
     // Prepare data for Chart.js
     const labels = sortedMembers.map(member => member.name);
     const counts = sortedMembers.map(member => member.count);
-    const colors = sortedMembers.map(member => 
+    const colors = sortedMembers.map(member =>
         member.name === "No members" ? "#CCCCCC" : member.color
     );
 

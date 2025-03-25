@@ -1,5 +1,6 @@
+$panel-spacings: 20px;
+
 .side-panel-contents-wrapper {
-  $panel-spacings: 20px;
   height: 100%;
   overflow-y: scroll;
 
@@ -7,10 +8,11 @@
   }
 
   & .side-panel-header {
-    padding: $panel-spacings $panel-spacings 0 $panel-spacings;
+    padding-top: $panel-spacings;
     box-sizing: border-box;
     margin-bottom: 8px;
     position: sticky;
+    z-index: 10;
     background-color: white;
     top: 0;
 
@@ -22,4 +24,8 @@
       width: 100%;
     }
   }
+}
+
+.side-padding {
+  padding-inline: $panel-spacings;
 }
