@@ -1,4 +1,3 @@
-const { DEV, VITE_LOCAL } = import.meta.env
 
 import { store } from '../../store/store';
 import { socketService } from '../socket.service';

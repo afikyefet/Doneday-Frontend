@@ -1,0 +1,159 @@
+[core]
+	repositoryformatversion = 0
+	filemode = false
+	bare = false
+	logallrefupdates = true
+	symlinks = false
+	ignorecase = true
+[remote "origin"]
+	url = https://github.com/afikyefet/Instagram-clone-proj.git
+	fetch = +refs/heads/*:refs/remotes/origin/*
+[branch "main"]
+	remote = origin
+	merge = refs/heads/main
+	github-pr-owner-number = "afikyefet#monday-clone-proj#12"
+	github-pr-base-branch = "afikyefet#monday-clone-proj#crudl3"
+	github-pr-base-branch = "afikyefet#monday-clone-proj#afik-bug-fixes"
+	github-pr-base-branch = "afikyefet#monday-clone-proj#dnd-group-fix"
+	github-pr-base-branch = "afikyefet#monday-clone-proj#CollapsedSummary"
+[branch "afiktest"]
+	github-pr-base-branch = "afikyefet#monday-clone-proj#main"
+	vscode-merge-base = origin/main
+	remote = origin
+	merge = refs/heads/afiktest
+[branch "afik-nav-bar"]
+	github-pr-base-branch = "afikyefet#monday-clone-proj#main"
+	vscode-merge-base = origin/main
+	remote = origin
+	merge = refs/heads/afik-nav-bar
+[branch "afik-board"]
+	github-pr-base-branch = "afikyefet#monday-clone-proj#main"
+	vscode-merge-base = origin/main
+	remote = origin
+	merge = refs/heads/afik-board
+[branch "crud"]
+	github-pr-base-branch = "afikyefet#monday-clone-proj#main"
+	vscode-merge-base = origin/main
+	remote = origin
+	merge = refs/heads/crud
+[branch "crud-select"]
+	github-pr-base-branch = "afikyefet#monday-clone-proj#main"
+	vscode-merge-base = origin/main
+	remote = origin
+	merge = refs/heads/crud-select
+[branch "crud-select2"]
+	github-pr-base-branch = "afikyefet#monday-clone-proj#main"
+	vscode-merge-base = origin/main
+	remote = origin
+	merge = refs/heads/crud-select2
+	gk-merge-base = origin/main
+[branch "crudl3"]
+	github-pr-base-branch = "afikyefet#monday-clone-proj#main"
+	vscode-merge-base = origin/main
+	remote = origin
+	merge = refs/heads/crudl3
+	gk-merge-base = origin/main
+[branch "board-crudl"]
+	github-pr-base-branch = "afikyefet#monday-clone-proj#main"
+	vscode-merge-base = origin/main
+	gk-merge-base = origin/main
+	remote = origin
+	merge = refs/heads/board-crudl
+	github-pr-owner-number = "afikyefet#monday-clone-proj#16"
+[branch "feature/members-dor-done"]
+	remote = origin
+	merge = refs/heads/feature/members-dor-done
+	vscode-merge-base = origin/feature/members-dor-done
+	gk-merge-base = origin/feature/members-dor-done
+[branch "feature/timeline"]
+	remote = origin
+	merge = refs/heads/feature/timeline
+	vscode-merge-base = origin/feature/timeline
+	gk-merge-base = origin/feature/timeline
+[branch "pre-merge"]
+	github-pr-base-branch = "afikyefet#monday-clone-proj#feature/timeline"
+	vscode-merge-base = origin/feature/timeline
+	gk-merge-base = origin/feature/timeline
+	remote = origin
+	merge = refs/heads/pre-merge
+	github-pr-owner-number = "afikyefet#monday-clone-proj#24"
+[branch "dbRefactor"]
+	github-pr-base-branch = "afikyefet#monday-clone-proj#main"
+	vscode-merge-base = origin/main
+	gk-merge-base = origin/main
+	remote = origin
+	merge = refs/heads/dbRefactor
+[branch "filterBy"]
+	github-pr-base-branch = "afikyefet#monday-clone-proj#main"
+	vscode-merge-base = origin/main
+	vscode-merge-base = origin/main
+	gk-merge-base = origin/main
+	remote = origin
+	merge = refs/heads/filterBy
+[branch "side-minimize"]
+	remote = origin
+	merge = refs/heads/side-minimize
+	vscode-merge-base = origin/side-minimize
+	gk-merge-base = origin/side-minimize
+[branch "afik-bug-fixes"]
+	github-pr-base-branch = "afikyefet#monday-clone-proj#main"
+	vscode-merge-base = origin/main
+	vscode-merge-base = origin/main
+	gk-merge-base = origin/main
+	remote = origin
+	merge = refs/heads/afik-bug-fixes
+	github-pr-base-branch = "afikyefet#monday-clone-proj#main"
+[branch "Date"]
+	remote = origin
+	merge = refs/heads/Date
+	vscode-merge-base = origin/Date
+	gk-merge-base = origin/Date
+[branch "dnd-group-fix"]
+	github-pr-base-branch = "afikyefet#monday-clone-proj#main"
+	vscode-merge-base = origin/main
+	vscode-merge-base = origin/main
+	gk-merge-base = origin/main
+	remote = origin
+	merge = refs/heads/dnd-group-fix
+[branch "BackendConnection"]
+	remote = origin
+	merge = refs/heads/BackendConnection
+	vscode-merge-base = origin/BackendConnection
+	gk-merge-base = origin/BackendConnection
+[branch "feature/css-changes"]
+	remote = origin
+	merge = refs/heads/feature/css-changes
+	vscode-merge-base = origin/feature/css-changes
+	gk-merge-base = origin/feature/css-changes
+[branch "CollapsedSummary"]
+	github-pr-base-branch = "afikyefet#monday-clone-proj#main"
+	vscode-merge-base = origin/main
+	vscode-merge-base = origin/main
+	gk-merge-base = origin/main
+	remote = origin
+	merge = refs/heads/CollapsedSummary
+	github-pr-base-branch = "afikyefet#monday-clone-proj#main"
+	github-pr-base-branch = "afikyefet#monday-clone-proj#main"
+[branch "feature/charts-new"]
+	remote = origin
+	merge = refs/heads/feature/charts-new
+	vscode-merge-base = origin/feature/charts-new
+	gk-merge-base = origin/feature/charts-new
+[branch "DragAndDropFinalBoss"]
+	github-pr-base-branch = "afikyefet#monday-clone-proj#main"
+	vscode-merge-base = origin/main
+	vscode-merge-base = origin/main
+	gk-merge-base = origin/main
+	remote = origin
+	merge = refs/heads/DragAndDropFinalBoss
+[branch "dnd2"]
+	github-pr-base-branch = "afikyefet#monday-clone-proj#DragAndDropFinalBoss"
+	vscode-merge-base = origin/DragAndDropFinalBoss
+	vscode-merge-base = origin/DragAndDropFinalBoss
+	gk-merge-base = origin/DragAndDropFinalBoss
+	remote = origin
+	merge = refs/heads/dnd2
+[branch "dnd3"]
+	gk-merge-base = origin/dnd2
+	remote = origin
+	merge = refs/heads/dnd3
