@@ -60,6 +60,7 @@ const GroupTableContentTask = ({ task, group }) => {
             const activities = [newActivity, ...(Array.isArray(foundTask.activities) ? foundTask.activities : [])];
             foundTask.activities = activities;
 
+            console.log("🚀 ~ handleCellUpdate ~ newBoard:", newBoard)
             await updateBoard(newBoard);
         } catch (error) {
             console.error("Error updating task cell:", error);

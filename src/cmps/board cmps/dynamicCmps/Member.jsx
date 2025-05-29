@@ -16,6 +16,7 @@ import { debounce } from "../../../services/util.service";
 
 export function Member({ info, onTaskUpdate }) {
     const allMembers = useSelector(state => state.boardModule.members)
+    const board = useSelector(state => state.boardModule.board)
     const [infoState, setInfoState] = useState(info);
     const [allAvailableMembers, setAllAvailableMembers] = useState([]);
     const [isAddButtonVisible, setIsAddButtonVisible] = useState(false);
@@ -26,23 +27,7 @@ export function Member({ info, onTaskUpdate }) {
 
     useEffect(() => {
         setAllAvailableMembers(allMembers.filter(member => !info.some(infoMember => infoMember._id === member._id)))
-    }, [allMembers])
-
-    // useEffect(() => {
-    //     const uniqueMembers = [];
-    //     const seenNames = new Set();
-
-    //     allAvailableMembers.forEach(member => {
-    //         if (!seenNames.has(member.name)) {
-    //             seenNames.add(member.name);
-    //             uniqueMembers.push(member);
-    //         }
-    //     });
-
-    //     if (uniqueMembers.length !== allAvailableMembers.length) {
-    //         setAllAvailableMembers(uniqueMembers);
-    //     }
-    // }, [allAvailableMembers]);
+    }, [allMembers, board])
 
     const openDialog = () => setIsDialogOpen(true);
     const closeDialog = () => {

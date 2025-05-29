@@ -39,7 +39,6 @@ const AuthenticatedRoutes = () => {
         return () => {
             socketService.off('updated-board', boardUpdate);
             socketService.off('deleted-board', boardDeleted)
-            socketService.off('new-notification', onNotification);
         }
     }, [])
 

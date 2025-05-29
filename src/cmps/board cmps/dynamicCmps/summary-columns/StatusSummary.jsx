@@ -9,7 +9,7 @@ const StatusSummary = ({ group }) => {
 
     useEffect(() => {
         if (!group?.tasks?.length) {
-            console.warn("Group tasks are undefined or empty");
+            // console.warn("Group tasks are undefined or empty");
             setStatuses([]);
             return;
         }

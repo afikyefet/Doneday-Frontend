@@ -22,9 +22,6 @@ export function Board() {
                 navigate('/', { replace: true })
                 console.error('Cannot get board', err);
             });
-        return () => {
-            socketService.emit('unwatch-board', boardId)
-        }
     }, [boardId, filterBy, sortBy])
 
 
