@@ -13,7 +13,7 @@ function getEmptyUser() {
     }
 }
 
-const service = VITE_LOCAL === 'true' ? local : remote
+const service = import.meta.env.VITE_LOCAL === 'true' ? local : remote
 export const userService = { ...service, getEmptyUser }
 
 // Easy access to this service from the dev tools console
