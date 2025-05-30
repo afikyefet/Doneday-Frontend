@@ -53,7 +53,7 @@ const ExternalHeader = () => {
                                     <MenuItem icon={Person} onClick={() => handleLogin('dor')} iconType="svg" title="Dor Cohen" />
                                 </Menu>
                             </MenuButton>
-                            <ExternalDemoButton styles={{ marginLeft: '8px' }} />
+                            <ExternalDemoButton handleLogin={handleLogin} styles={{ marginLeft: '8px' }} />
                         </section>
                     </nav>
                 </div >

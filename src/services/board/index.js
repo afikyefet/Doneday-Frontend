@@ -35,4 +35,4 @@ export const boardService = { ...service, emitNotification, getEmptyReply }
 // Easy access to this service from the dev tools console
 // when using script - dev / dev:local
 
-if (DEV) window.boardService = boardService
+if (import.meta.env.DEV) window.boardService = boardService

@@ -8,4 +8,4 @@ export const reviewService = import.meta.env.VITE_LOCAL === 'true' ? local : rem
 // Easy access to this service from the dev tools console
 // when using script - dev / dev:local
 
-if (DEV) window.reviewService = reviewService
+if (import.meta.env.DEV) window.reviewService = reviewService

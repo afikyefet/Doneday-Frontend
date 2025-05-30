@@ -11,11 +11,12 @@ const getButtonSizeStyles = (size) => {
     }
 }
 
-const ExternalDemoButton = ({ size = "small", styles = {} }) => {
+const ExternalDemoButton = ({ size = "small", styles = {}, handleLogin }) => {
     const variantStyles = getButtonSizeStyles(size);
     return (
         <span
             role='link'
+            onClick={()=> handleLogin('afik')}
             className="external-rounded-button"
             style={{ ...styles, ...variantStyles }}>
             View Demo
